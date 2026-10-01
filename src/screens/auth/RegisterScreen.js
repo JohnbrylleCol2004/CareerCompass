@@ -21,22 +21,32 @@ export default function RegisterScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  function handleRegister() {
-    if (!name || !username || !email || !password) {
-      Alert.alert(
-        'Incomplete Form',
-        'Please complete all required fields.'
-      );
-      return;
-    }
+  async function handleRegister() {
+  if (!name || !username || !email || !password) {
+    Alert.alert(
+      'Incomplete Form',
+      'Please complete all required fields.'
+    );
+    return;
+  }
+
+  try {
+    await register({
+      name,
+      username,
+      email,
+      password,
+      role,
+    });
 
     Alert.alert(
       'Registration Successful',
-      'Your account has been created.'
+      `Welcome, ${name}!`
     );
-
-    navigation.navigate('Login');
+  } catch (error) {
+    Alert.alert('Registration Failed', error.message);
   }
+}
 
   return (
     <SafeAreaView style={styles.safeArea}>
