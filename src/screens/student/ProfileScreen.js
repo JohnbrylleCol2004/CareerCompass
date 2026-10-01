@@ -9,15 +9,15 @@ import { colors } from '../../theme/colors';
 
 export default function ProfileScreen({ navigation }) {
   const { user } = useAuth();
-  
+
   return (
     <ScrollView style={styles.container}>
       <AppHeader title="Student Profile" />
 
-      <SummaryCard title="Name" value={mockUser.name} />
-      <SummaryCard title="Academic Year" value={mockUser.academicYear} />
-      <SummaryCard title="Experience Level" value={mockUser.experienceLevel} />
-      <SummaryCard title="Career Target" value={mockUser.currentCareer} />
+      <SummaryCard title="Name" value={user?.name} />
+      <SummaryCard title="Academic Year" value={user?.academicYear} />
+      <SummaryCard title="Experience Level" value={user?.experienceLevel} />
+      <SummaryCard title="Career Target" value={user?.currentCareer} />
       <SummaryCard
         title="Interests"
         description={mockUser.interests.join(', ')}
