@@ -1,65 +1,134 @@
-import { mockUser, mockAdmin } from '../data/mockData';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-let currentUser = null;
+const USERS_KEY = '@career_compass_users';
+const SESSION_KEY = '@career_compass_session';
 
-export async function login(username, password) {
-  await delay(500);
+const defaultUsers = [
+  {
+    id: 'student-demo',
+    name: 'Juan Dela Cruz',
+    username: 'juan123',
+    email: 'juan@example.com',
+    password: '123456',
+    role: 'student',
+    academicYear: '1st Year',
+    experienceLevel: 'Entry Level',
+    currentCareer: 'Web Developer',
+    interests: ['Web Development', 'Networking'],
+    technologies: ['HTML', 'CSS', 'JavaScript'],
+  },
+  {
+    id: 'admin-demo',
+    name: 'Career Compass Admin',
+    username: 'admin',
+    email: 'admin@careercompass.com',
+    password: 'admin123',
+    role: 'admin',
+  },
+];
 
-  if (!username || !password) {
-    throw new Error('Username and password are required.');
+async function getUsers() {
+  const savedUsers = await AsyncStorage.getItem(USERS_KEY);
+
+  if (!savedUsers) {
+    await AsyncStorage.setItem(
+      USERS_KEY,
+      JSON.stringify(defaultUsers)
+    );
+
+    return defaultUsers;
   }
 
-  if (username === 'admin') {
-    currentUser = mockAdmin;
-    return currentUser;
+  return JSON.parse(savedUsers);
+}
+
+function removePassword(user) {
+  const { password, ...safeUser } = user;
+  return safeUser;
+}
+
+export async function login(identifier, password) {
+  const users = await getUsers();
+
+  const user = users.find(
+    (item) =>
+      item.username.toLowerCase() === identifier.toLowerCase() ||
+      item.email.toLowerCase() === identifier.toLowerCase()
+  );
+
+  if (!user || user.password !== password) {
+    throw new Error('Invalid username/email or password.');
   }
 
-  currentUser = mockUser;
-  return currentUser;
+  const safeUser = removePassword(user);
+
+  await AsyncStorage.setItem(
+    SESSION_KEY,
+    JSON.stringify(safeUser)
+  );
+
+  return safeUser;
 }
 
 export async function register(userData) {
-  await delay(500);
+  const users = await getUsers();
 
-  if (
-    !userData.name ||
-    !userData.username ||
-    !userData.email ||
-    !userData.password
-  ) {
-    throw new Error('Please complete all required fields.');
+  const existingUser = users.find(
+    (item) =>
+      item.username.toLowerCase() === userData.username.toLowerCase() ||
+      item.email.toLowerCase() === userData.email.toLowerCase()
+  );
+
+  if (existingUser) {
+    throw new Error('Username or email already exists.');
   }
 
   const newUser = {
-    id: Date.now(),
+    id: Date.now().toString(),
     name: userData.name,
     username: userData.username,
     email: userData.email,
-    role: 'student',
+    password: userData.password,
+    role: userData.role || 'student',
+    academicYear: userData.academicYear || '1st Year',
+    experienceLevel: userData.experienceLevel || 'Entry Level',
+    currentCareer: 'Web Developer',
+    interests: [],
+    technologies: [],
   };
 
-  currentUser = newUser;
+  const updatedUsers = [...users, newUser];
 
-  return newUser;
-}
+  await AsyncStorage.setItem(
+    USERS_KEY,
+    JSON.stringify(updatedUsers)
+  );
 
-export async function logout() {
-  await delay(300);
-  currentUser = null;
-  return true;
+  const safeUser = removePassword(newUser);
+
+  await AsyncStorage.setItem(
+    SESSION_KEY,
+    JSON.stringify(safeUser)
+  );
+
+  return safeUser;
 }
 
 export async function getCurrentUser() {
-  await delay(200);
-  return currentUser;
+  const session = await AsyncStorage.getItem(SESSION_KEY);
+
+  if (!session) {
+    return null;
+  }
+
+  return JSON.parse(session);
 }
 
-export function isAuthenticated() {
-  return currentUser !== null;
+export async function logout() {
+  await AsyncStorage.removeItem(SESSION_KEY);
 }
 
-function delay(milliseconds) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, milliseconds);
-  });
+export async function clearAllUsers() {
+  await AsyncStorage.removeItem(USERS_KEY);
+  await AsyncStorage.removeItem(SESSION_KEY);
 }
