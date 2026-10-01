@@ -14,6 +14,8 @@ import PrimaryButton from '../../components/PrimaryButton';
 import { colors } from '../../theme/colors';
 
 export default function LoginScreen({ navigation }) {
+  const { login } = useAuth();
+  
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
