@@ -8,7 +8,7 @@ import AdminNavigator from './src/navigation/AdminNavigator';
 export default function App() {
   // Change this value while testing:
   // 'auth', 'student', or 'admin'
-  const [userType] = useState('auth');
+  const [userType] = useState('student');
 
   return (
     <NavigationContainer>
