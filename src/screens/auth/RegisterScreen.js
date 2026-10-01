@@ -1,6 +1,5 @@
-import { TouchableOpacity } from 'react-native';
-import { useAuth } from '../../context/AuthContext';
 import React, { useState } from 'react';
+
 import {
   View,
   Text,
@@ -13,49 +12,22 @@ import {
 } from 'react-native';
 
 import PrimaryButton from '../../components/PrimaryButton';
+import { useAuth } from '../../context/AuthContext';
 import { colors } from '../../theme/colors';
 
 export default function RegisterScreen({ navigation }) {
+  const { register } = useAuth();
+
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-  async function handleRegister() {
-  if (!name || !username || !email || !password) {
-    Alert.alert(
-      'Incomplete Form',
-      'Please complete all required fields.'
-    );
-    return;
-  }
-
-  try {
-    await register({
-      name,
-      username,
-      email,
-      password,
-      role,
-    });
-
-    Alert.alert(
-      'Registration Successful',
-      `Welcome, ${name}!`
-    );
-  } catch (error) {
-    Alert.alert('Registration Failed', error.message);
-  }
-}
+  const [role, setRole] = useState('student');
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.title}>Create Account</Text>
-
-        <Text style={styles.subtitle}>
-          Register as a Career Compass student
-        </Text>
 
         <Text style={styles.label}>Full Name</Text>
         <TextInput
@@ -71,7 +43,6 @@ export default function RegisterScreen({ navigation }) {
           placeholder="Choose a username"
           value={username}
           onChangeText={setUsername}
-          autoCapitalize="none"
         />
 
         <Text style={styles.label}>Email</Text>
@@ -80,8 +51,6 @@ export default function RegisterScreen({ navigation }) {
           placeholder="Enter your email"
           value={email}
           onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
         />
 
         <Text style={styles.label}>Password</Text>
@@ -93,22 +62,35 @@ export default function RegisterScreen({ navigation }) {
           secureTextEntry
         />
 
+        {/* Put the Account Type section here */}
+        <Text style={styles.label}>Account Type</Text>
+
+        <View style={styles.roleContainer}>
+          <TouchableOpacity
+            style={[
+              styles.roleButton,
+              role === 'student' && styles.selectedRole,
+            ]}
+            onPress={() => setRole('student')}
+          >
+            <Text>Student</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.roleButton,
+              role === 'admin' && styles.selectedRole,
+            ]}
+            onPress={() => setRole('admin')}
+          >
+            <Text>Admin</Text>
+          </TouchableOpacity>
+        </View>
+
         <PrimaryButton
           title="Register"
           onPress={handleRegister}
         />
-
-        <View style={styles.loginRow}>
-          <Text style={styles.normalText}>
-            Already have an account?
-          </Text>
-
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Login')}
-          >
-            <Text style={styles.link}> Login</Text>
-          </TouchableOpacity>
-        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -162,4 +144,24 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontWeight: 'bold',
   },
+  roleContainer: {
+  flexDirection: 'row',
+  gap: 10,
+  marginBottom: 15,
+},
+
+roleButton: {
+  flex: 1,
+  padding: 14,
+  alignItems: 'center',
+  borderRadius: 8,
+  borderWidth: 1,
+  borderColor: colors.border,
+  backgroundColor: colors.white,
+},
+
+selectedRole: {
+  backgroundColor: colors.secondary,
+  borderColor: colors.primary,
+},
 });

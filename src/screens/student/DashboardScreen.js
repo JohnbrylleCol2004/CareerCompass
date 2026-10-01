@@ -1,4 +1,5 @@
 import React from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { ScrollView, Text, StyleSheet } from 'react-native';
 import AppHeader from '../../components/AppHeader';
 import SummaryCard from '../../components/SummaryCard';
@@ -6,6 +7,8 @@ import { colors } from '../../theme/colors';
 import { careers, skills } from '../../data/mockData';
 
 export default function DashboardScreen({ navigation }) {
+  const { user } = useAuth();
+  
   return (
     <ScrollView style={styles.container}>
       <AppHeader
@@ -13,7 +16,8 @@ export default function DashboardScreen({ navigation }) {
         onProfilePress={() => navigation.navigate('Profile')}
       />
 
-      <Text style={styles.heading}>Welcome, Juan!</Text>
+      <Text style={styles.heading}> Welcome, {user?.name || 'Student'}!
+      </Text>
 
       <SummaryCard
         title="Skill Gap Summary"
