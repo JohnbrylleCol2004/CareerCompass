@@ -1,20 +1,22 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+
+import AuthNavigator from './src/navigation/AuthNavigator';
+import StudentNavigator from './src/navigation/StudentNavigator';
+import AdminNavigator from './src/navigation/AdminNavigator';
 
 export default function App() {
+  const [userType, setUserType] = useState('student');
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <NavigationContainer>
+      {userType === 'student' ? (
+        <StudentNavigator />
+      ) : userType === 'admin' ? (
+        <AdminNavigator />
+      ) : (
+        <AuthNavigator />
+      )}
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
