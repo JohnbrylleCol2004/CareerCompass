@@ -1,4 +1,5 @@
 import React from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { ScrollView, Text, StyleSheet } from 'react-native';
 import AppHeader from '../../components/AppHeader';
 import SummaryCard from '../../components/SummaryCard';
