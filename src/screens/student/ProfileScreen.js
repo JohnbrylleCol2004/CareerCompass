@@ -8,6 +8,8 @@ import { mockUser } from '../../data/mockData';
 import { colors } from '../../theme/colors';
 
 export default function ProfileScreen({ navigation }) {
+  const { user } = useAuth();
+  
   return (
     <ScrollView style={styles.container}>
       <AppHeader title="Student Profile" />
