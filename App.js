@@ -6,17 +6,17 @@ import StudentNavigator from './src/navigation/StudentNavigator';
 import AdminNavigator from './src/navigation/AdminNavigator';
 
 export default function App() {
-  const [userType, setUserType] = useState('student');
+  // Change this value while testing:
+  // 'auth', 'student', or 'admin'
+  const [userType] = useState('auth');
 
   return (
     <NavigationContainer>
-      {userType === 'student' ? (
-        <StudentNavigator />
-      ) : userType === 'admin' ? (
-        <AdminNavigator />
-      ) : (
-        <AuthNavigator />
-      )}
+      {userType === 'student' && <StudentNavigator />}
+
+      {userType === 'admin' && <AdminNavigator />}
+
+      {userType === 'auth' && <AuthNavigator />}
     </NavigationContainer>
   );
 }
