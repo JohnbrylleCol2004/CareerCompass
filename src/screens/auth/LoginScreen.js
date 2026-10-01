@@ -15,21 +15,30 @@ import { colors } from '../../theme/colors';
 
 export default function LoginScreen({ navigation }) {
   const { login } = useAuth();
-  
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
-  function handleLogin() {
-    if (!username || !password) {
-      Alert.alert('Missing Information', 'Please enter your username and password.');
-      return;
-    }
+  async function handleLogin() {
+  if (!username || !password) {
+    Alert.alert(
+      'Missing Information',
+      'Please enter your username and password.'
+    );
+    return;
+  }
+
+  try {
+    await login(username, password);
 
     Alert.alert(
-      'Demo Login',
-      'Login successful. Connect this to the database later.'
+      'Login Successful',
+      'Welcome back!'
     );
+  } catch (error) {
+    Alert.alert('Login Failed', error.message);
   }
+}
 
   return (
     <SafeAreaView style={styles.safeArea}>
