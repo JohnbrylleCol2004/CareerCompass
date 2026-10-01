@@ -1,3 +1,5 @@
+import { TouchableOpacity } from 'react-native';
+import { useAuth } from '../../context/AuthContext';
 import React, { useState } from 'react';
 import {
   View,
