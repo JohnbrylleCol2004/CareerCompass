@@ -2,6 +2,7 @@ import React from 'react';
 import { ScrollView, Text, StyleSheet } from 'react-native';
 import SummaryCard from '../../components/SummaryCard';
 import { colors } from '../../theme/colors';
+import LogoutButton from '../../components/LogoutButton';
 
 export default function AdminDashboardScreen() {
   return (
@@ -16,6 +17,7 @@ export default function AdminDashboardScreen() {
         title="Recent System Update"
         description="Web Developer career profile was updated."
       />
+      <LogoutButton />
     </ScrollView>
   );
 }
