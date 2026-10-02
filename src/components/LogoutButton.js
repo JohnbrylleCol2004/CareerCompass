@@ -20,7 +20,11 @@ export default function LogoutButton() {
           text: 'Logout',
           style: 'destructive',
           onPress: async () => {
-            await logout();
+            try {
+              await logout();
+            } catch (error) {
+              console.log('Logout button error:', error.message);
+            }
           },
         },
       ]
