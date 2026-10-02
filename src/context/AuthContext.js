@@ -41,9 +41,14 @@ export function AuthProvider({ children }) {
   }
 
   async function logout() {
+  try {
     await logoutUser();
+  } catch (error) {
+    console.log('Logout error:', error.message);
+  } finally {
     setUser(null);
   }
+}
 
   return (
     <AuthContext.Provider
