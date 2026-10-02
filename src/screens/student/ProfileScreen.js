@@ -6,6 +6,7 @@ import SummaryCard from '../../components/SummaryCard';
 import PrimaryButton from '../../components/PrimaryButton';
 import { mockUser } from '../../data/mockData';
 import { colors } from '../../theme/colors';
+import LogoutButton from '../../components/LogoutButton';
 
 export default function ProfileScreen({ navigation }) {
   const { user } = useAuth();
