@@ -32,6 +32,7 @@ export default function ProfileScreen({ navigation }) {
         title="Edit Profile"
         onPress={() => navigation.navigate('EditProfile')}
       />
+      <LogoutButton />
     </ScrollView>
   );
 }
