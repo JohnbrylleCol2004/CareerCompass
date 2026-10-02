@@ -1,40 +1,49 @@
 import React from 'react';
-import { Alert } from 'react-native';
+import {
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+} from 'react-native';
 
-import PrimaryButton from './PrimaryButton';
 import { useAuth } from '../context/AuthContext';
+import { colors } from '../theme/colors';
 
 export default function LogoutButton() {
   const { logout } = useAuth();
 
-  function handleLogout() {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await logout();
-            } catch (error) {
-              console.log('Logout button error:', error.message);
-            }
-          },
-        },
-      ]
-    );
+  async function handleLogout() {
+    console.log('LOGOUT BUTTON CLICKED');
+
+    try {
+      await logout();
+      console.log('LOGOUT SUCCESSFUL');
+    } catch (error) {
+      console.log('LOGOUT ERROR:', error.message);
+    }
   }
 
   return (
-    <PrimaryButton
-      title="Logout"
+    <TouchableOpacity
+      style={styles.button}
       onPress={handleLogout}
-    />
+      activeOpacity={0.7}
+    >
+      <Text style={styles.text}>Logout</Text>
+    </TouchableOpacity>
   );
 }
+
+const styles = StyleSheet.create({
+  button: {
+    backgroundColor: colors.danger,
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    margin: 20,
+  },
+  text: {
+    color: colors.white,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+});

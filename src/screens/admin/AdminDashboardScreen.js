@@ -17,6 +17,7 @@ export default function AdminDashboardScreen() {
         title="Recent System Update"
         description="Web Developer career profile was updated."
       />
+      
       <LogoutButton />
     </ScrollView>
   );
