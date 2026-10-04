@@ -10,7 +10,13 @@ export default function DashboardScreen({ navigation }) {
   const { user } = useAuth();
   
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+        overScrollMode="never"
+        keyboardShouldPersistTaps="handled"
+>
       <AppHeader
         title="Student Dashboard"
         onProfilePress={() => navigation.navigate('Profile')}
