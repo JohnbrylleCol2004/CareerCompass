@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  View,
   Text,
   TextInput,
   StyleSheet,
@@ -12,7 +11,6 @@ import {
   Platform,
 } from 'react-native';
 
-import { Picker } from '@react-native-picker/picker';
 import PrimaryButton from '../../components/PrimaryButton';
 import { useAuth } from '../../context/AuthContext';
 import { colors } from '../../theme/colors';
@@ -34,16 +32,19 @@ export default function RegisterScreen({ navigation }) {
     const cleanFirstName = firstName.trim();
     const cleanMiddleName = middleName.trim();
     const cleanLastName = lastName.trim();
+    const cleanSuffix = suffix.trim();
     const cleanUsername = username.trim();
     const cleanEmail = email.trim().toLowerCase();
+    const cleanAcademicYear = academicYear.trim();
 
     if (
       !cleanFirstName ||
+      !cleanMiddleName ||
       !cleanLastName ||
       !cleanUsername ||
       !cleanEmail ||
       !password ||
-      !academicYear
+      !cleanAcademicYear
     ) {
       Alert.alert(
         'Incomplete Form',
@@ -72,7 +73,7 @@ export default function RegisterScreen({ navigation }) {
       cleanFirstName,
       cleanMiddleName,
       cleanLastName,
-      suffix,
+      cleanSuffix,
     ]
       .filter(Boolean)
       .join(' ');
@@ -85,11 +86,11 @@ export default function RegisterScreen({ navigation }) {
         firstName: cleanFirstName,
         middleName: cleanMiddleName,
         lastName: cleanLastName,
-        suffix,
+        suffix: cleanSuffix,
         username: cleanUsername,
         email: cleanEmail,
         password,
-        academicYear,
+        academicYear: cleanAcademicYear,
       });
 
       Alert.alert(
@@ -116,6 +117,7 @@ export default function RegisterScreen({ navigation }) {
           contentContainerStyle={styles.container}
           showsVerticalScrollIndicator={false}
           bounces={false}
+          alwaysBounceVertical={false}
           overScrollMode="never"
           keyboardShouldPersistTaps="handled"
         >
@@ -129,15 +131,17 @@ export default function RegisterScreen({ navigation }) {
           <TextInput
             style={styles.input}
             placeholder="Enter your first name"
+            placeholderTextColor={colors.gray}
             value={firstName}
             onChangeText={setFirstName}
             autoCapitalize="words"
           />
 
-          <Text style={styles.label}>Middle Name</Text>
+          <Text style={styles.label}>Middle Name *</Text>
           <TextInput
             style={styles.input}
             placeholder="Enter your middle name"
+            placeholderTextColor={colors.gray}
             value={middleName}
             onChangeText={setMiddleName}
             autoCapitalize="words"
@@ -147,65 +151,37 @@ export default function RegisterScreen({ navigation }) {
           <TextInput
             style={styles.input}
             placeholder="Enter your last name"
+            placeholderTextColor={colors.gray}
             value={lastName}
             onChangeText={setLastName}
             autoCapitalize="words"
           />
 
-         <Text style={styles.label}>Suffix</Text>
-
-         <View style={styles.pickerContainer}>
-          <Picker
-            style={styles.picker}
-            selectedValue={suffix}
-            onValueChange={(value) => setSuffix(value)}
-           enabled={!loading}
-                              >
-          <Picker.Item label="No suffix" value="" />
-          <Picker.Item label="Jr." value="Jr." />
-          <Picker.Item label="Sr." value="Sr." />
-          <Picker.Item label="II" value="II" />
-          <Picker.Item label="III" value="III" />
-          <Picker.Item label="IV" value="IV" />
-          <Picker.Item label="V" value="V" />
-         </Picker>
-        </View>
+          <Text style={styles.label}>Suffix (Optional)</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Example: Jr., Sr., II, III"
+            placeholderTextColor={colors.gray}
+            value={suffix}
+            onChangeText={setSuffix}
+            autoCapitalize="words"
+          />
 
           <Text style={styles.label}>Year Level *</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              style={styles.picker}
-              selectedValue={academicYear}
-              onValueChange={(value) => setAcademicYear(value)}
-              enabled={!loading}
-            >
-              <Picker.Item
-                label="Select year level"
-                value=""
-              />
-              <Picker.Item
-                label="1st Year"
-                value="1st Year"
-              />
-              <Picker.Item
-                label="2nd Year"
-                value="2nd Year"
-              />
-              <Picker.Item
-                label="3rd Year"
-                value="3rd Year"
-              />
-              <Picker.Item
-                label="4th Year"
-                value="4th Year"
-              />
-            </Picker>
-          </View>
+          <TextInput
+            style={styles.input}
+            placeholder="Example: 1st Year"
+            placeholderTextColor={colors.gray}
+            value={academicYear}
+            onChangeText={setAcademicYear}
+            autoCapitalize="words"
+          />
 
           <Text style={styles.label}>Username *</Text>
           <TextInput
             style={styles.input}
             placeholder="Choose a username"
+            placeholderTextColor={colors.gray}
             value={username}
             onChangeText={setUsername}
             autoCapitalize="none"
@@ -216,6 +192,7 @@ export default function RegisterScreen({ navigation }) {
           <TextInput
             style={styles.input}
             placeholder="Enter your email"
+            placeholderTextColor={colors.gray}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -227,6 +204,7 @@ export default function RegisterScreen({ navigation }) {
           <TextInput
             style={styles.input}
             placeholder="Create a password"
+            placeholderTextColor={colors.gray}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -296,23 +274,6 @@ const styles = StyleSheet.create({
     padding: 13,
     fontSize: 15,
     color: colors.dark,
-  },
-
-  pickerContainer: {
-    width: '55%',
-    height: 48,
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
-    overflow: 'hidden',
-    alignSelf: 'flex-start',
-  },
-
-  picker: {
-    width: '100%',
-    height: 48,
-    fontSize: 14,
   },
 
   loginText: {
