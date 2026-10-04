@@ -154,8 +154,9 @@ export default function RegisterScreen({ navigation }) {
           <Text style={styles.label}>Suffix</Text>
           <View style={styles.pickerContainer}>
             <Picker
-              selectedValue={suffix}
-              onValueChange={setSuffix}
+            style={styles.picker}
+            selectedValue={suffix}
+            onValueChange={setSuffix}
             >
               <Picker.Item label="No suffix" value="" />
               <Picker.Item label="Jr." value="Jr." />
@@ -170,6 +171,7 @@ export default function RegisterScreen({ navigation }) {
           <Text style={styles.label}>Year Level *</Text>
           <View style={styles.pickerContainer}>
             <Picker
+              style={styles.picker}
               selectedValue={academicYear}
               onValueChange={setAcademicYear}
             >
@@ -303,12 +305,21 @@ const styles = StyleSheet.create({
   },
 
   pickerContainer: {
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
+  width: '55%',
+  height: 48,
+  backgroundColor: colors.white,
+  borderWidth: 1,
+  borderColor: colors.border,
+  borderRadius: 8,
+  overflow: 'hidden',
+  alignSelf: 'flex-start',
+},
+   
+  picker: {
+  height: 48,
+  width: '100%',
+  fontSize: 14,
+},
 
   roleContainer: {
     flexDirection: 'row',
