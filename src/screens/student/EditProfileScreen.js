@@ -37,8 +37,11 @@ export default function EditProfileScreen({ navigation }) {
 
       setUserId(user.id);
 
-      const { data: profile, error: profileError } = await supabase
-        .from('users')
+      const {
+        data: profile,
+        error: profileError,
+      } = await supabase
+        .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single();
@@ -58,7 +61,7 @@ export default function EditProfileScreen({ navigation }) {
     } catch (error) {
       Alert.alert(
         'Unable to Load Profile',
-        error.message || 'Something went wrong.'
+        error?.message || 'Something went wrong.'
       );
     } finally {
       setLoading(false);
@@ -67,7 +70,10 @@ export default function EditProfileScreen({ navigation }) {
 
   async function saveProfile() {
     if (!name.trim()) {
-      Alert.alert('Missing Name', 'Please enter your name.');
+      Alert.alert(
+        'Missing Name',
+        'Please enter your name.'
+      );
       return;
     }
 
@@ -80,7 +86,7 @@ export default function EditProfileScreen({ navigation }) {
         .filter(Boolean);
 
       const { error } = await supabase
-        .from('users')
+        .from('profiles')
         .update({
           name: name.trim(),
           current_career: career.trim(),
@@ -101,7 +107,8 @@ export default function EditProfileScreen({ navigation }) {
     } catch (error) {
       Alert.alert(
         'Update Failed',
-        error.message || 'Something went wrong while saving.'
+        error?.message ||
+          'Something went wrong while saving.'
       );
     } finally {
       setSaving(false);
@@ -125,12 +132,14 @@ export default function EditProfileScreen({ navigation }) {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
         bounces={false}
+        alwaysBounceVertical={false}
         overScrollMode="never"
         keyboardShouldPersistTaps="handled"
       >
         <Text style={styles.title}>Edit Profile</Text>
 
         <Text style={styles.label}>Name</Text>
+
         <TextInput
           style={styles.input}
           value={name}
@@ -139,7 +148,10 @@ export default function EditProfileScreen({ navigation }) {
           placeholderTextColor={colors.gray}
         />
 
-        <Text style={styles.label}>Career Target</Text>
+        <Text style={styles.label}>
+          Career Target
+        </Text>
+
         <TextInput
           style={styles.input}
           value={career}
@@ -148,12 +160,13 @@ export default function EditProfileScreen({ navigation }) {
           placeholderTextColor={colors.gray}
         />
 
-        <Text style={styles.label}>
-          Interests
-        </Text>
+        <Text style={styles.label}>Interests</Text>
 
         <TextInput
-          style={[styles.input, styles.interestsInput]}
+          style={[
+            styles.input,
+            styles.interestsInput,
+          ]}
           value={interests}
           onChangeText={setInterests}
           placeholder="Example: Coding, Design, Business"
