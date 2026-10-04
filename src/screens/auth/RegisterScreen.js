@@ -12,6 +12,7 @@ import {
   Platform,
 } from 'react-native';
 
+import { Picker } from '@react-native-picker/picker';
 import PrimaryButton from '../../components/PrimaryButton';
 import { useAuth } from '../../context/AuthContext';
 import { colors } from '../../theme/colors';
@@ -19,19 +20,32 @@ import { colors } from '../../theme/colors';
 export default function RegisterScreen({ navigation }) {
   const { register } = useAuth();
 
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [middleName, setMiddleName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [suffix, setSuffix] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [academicYear, setAcademicYear] = useState('');
   const [role, setRole] = useState('student');
   const [loading, setLoading] = useState(false);
 
   async function handleRegister() {
-    const cleanName = name.trim();
+    const cleanFirstName = firstName.trim();
+    const cleanMiddleName = middleName.trim();
+    const cleanLastName = lastName.trim();
     const cleanUsername = username.trim();
     const cleanEmail = email.trim().toLowerCase();
 
-    if (!cleanName || !cleanUsername || !cleanEmail || !password) {
+    if (
+      !cleanFirstName ||
+      !cleanLastName ||
+      !cleanUsername ||
+      !cleanEmail ||
+      !password ||
+      !academicYear
+    ) {
       Alert.alert(
         'Incomplete Form',
         'Please complete all required fields.'
@@ -40,42 +54,51 @@ export default function RegisterScreen({ navigation }) {
     }
 
     if (!cleanEmail.includes('@')) {
-      Alert.alert(
-        'Invalid Email',
-        'Please enter a valid email address.'
-      );
+      Alert.alert('Invalid Email', 'Please enter a valid email address.');
       return;
     }
 
     if (password.length < 6) {
       Alert.alert(
         'Weak Password',
-        'Your password must contain at least 6 characters.'
+        'Password must contain at least 6 characters.'
       );
       return;
     }
+
+    const fullName = [
+      cleanFirstName,
+      cleanMiddleName,
+      cleanLastName,
+      suffix,
+    ]
+      .filter(Boolean)
+      .join(' ');
 
     try {
       setLoading(true);
 
       await register({
-        name: cleanName,
+        name: fullName,
+        firstName: cleanFirstName,
+        middleName: cleanMiddleName,
+        lastName: cleanLastName,
+        suffix,
         username: cleanUsername,
         email: cleanEmail,
         password,
+        academicYear,
         role,
       });
 
       Alert.alert(
         'Registration Successful',
-        `Welcome, ${cleanName}!`
+        `Welcome, ${fullName}!`
       );
-
-      // AuthContext should automatically open the correct navigator.
     } catch (error) {
       Alert.alert(
         'Registration Failed',
-        error?.message || 'Something went wrong during registration.'
+        error?.message || 'Something went wrong.'
       );
     } finally {
       setLoading(false);
@@ -90,6 +113,9 @@ export default function RegisterScreen({ navigation }) {
       >
         <ScrollView
           contentContainerStyle={styles.container}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+          overScrollMode="never"
           keyboardShouldPersistTaps="handled"
         >
           <Text style={styles.title}>Create Account</Text>
@@ -98,33 +124,77 @@ export default function RegisterScreen({ navigation }) {
             Register for Career Compass
           </Text>
 
-          <Text style={styles.label}>Full Name</Text>
+          <Text style={styles.label}>First Name *</Text>
           <TextInput
             style={styles.input}
-            placeholder="Enter your full name"
-            placeholderTextColor={colors.gray}
-            value={name}
-            onChangeText={setName}
+            placeholder="Enter your first name"
+            value={firstName}
+            onChangeText={setFirstName}
             autoCapitalize="words"
-            autoCorrect={false}
           />
 
-          <Text style={styles.label}>Username</Text>
+          <Text style={styles.label}>Middle Name</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter your middle name"
+            value={middleName}
+            onChangeText={setMiddleName}
+            autoCapitalize="words"
+          />
+
+          <Text style={styles.label}>Last Name *</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter your last name"
+            value={lastName}
+            onChangeText={setLastName}
+            autoCapitalize="words"
+          />
+
+          <Text style={styles.label}>Suffix</Text>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={suffix}
+              onValueChange={setSuffix}
+            >
+              <Picker.Item label="No suffix" value="" />
+              <Picker.Item label="Jr." value="Jr." />
+              <Picker.Item label="Sr." value="Sr." />
+              <Picker.Item label="II" value="II" />
+              <Picker.Item label="III" value="III" />
+              <Picker.Item label="IV" value="IV" />
+              <Picker.Item label="V" value="V" />
+            </Picker>
+          </View>
+
+          <Text style={styles.label}>Year Level *</Text>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={academicYear}
+              onValueChange={setAcademicYear}
+            >
+              <Picker.Item label="Select year level" value="" />
+              <Picker.Item label="1st Year" value="1st Year" />
+              <Picker.Item label="2nd Year" value="2nd Year" />
+              <Picker.Item label="3rd Year" value="3rd Year" />
+              <Picker.Item label="4th Year" value="4th Year" />
+            </Picker>
+          </View>
+
+          <Text style={styles.label}>Username *</Text>
           <TextInput
             style={styles.input}
             placeholder="Choose a username"
-            placeholderTextColor={colors.gray}
             value={username}
             onChangeText={setUsername}
             autoCapitalize="none"
             autoCorrect={false}
           />
 
-          <Text style={styles.label}>Email</Text>
+          <Text style={styles.label}>Email *</Text>
           <TextInput
             style={styles.input}
             placeholder="Enter your email"
-            placeholderTextColor={colors.gray}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -132,16 +202,14 @@ export default function RegisterScreen({ navigation }) {
             autoCorrect={false}
           />
 
-          <Text style={styles.label}>Password</Text>
+          <Text style={styles.label}>Password *</Text>
           <TextInput
             style={styles.input}
             placeholder="Create a password"
-            placeholderTextColor={colors.gray}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
             autoCapitalize="none"
-            autoCorrect={false}
           />
 
           <Text style={styles.label}>Account Type</Text>
@@ -155,14 +223,7 @@ export default function RegisterScreen({ navigation }) {
               onPress={() => setRole('student')}
               disabled={loading}
             >
-              <Text
-                style={[
-                  styles.roleText,
-                  role === 'student' && styles.selectedRoleText,
-                ]}
-              >
-                Student
-              </Text>
+              <Text style={styles.roleText}>Student</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -173,14 +234,7 @@ export default function RegisterScreen({ navigation }) {
               onPress={() => setRole('admin')}
               disabled={loading}
             >
-              <Text
-                style={[
-                  styles.roleText,
-                  role === 'admin' && styles.selectedRoleText,
-                ]}
-              >
-                Admin
-              </Text>
+              <Text style={styles.roleText}>Admin</Text>
             </TouchableOpacity>
           </View>
 
@@ -191,7 +245,6 @@ export default function RegisterScreen({ navigation }) {
 
           <TouchableOpacity
             onPress={() => navigation.navigate('Login')}
-            disabled={loading}
           >
             <Text style={styles.loginText}>
               Already have an account? Login
@@ -215,7 +268,6 @@ const styles = StyleSheet.create({
 
   container: {
     flexGrow: 1,
-    justifyContent: 'center',
     padding: 28,
   },
 
@@ -250,6 +302,14 @@ const styles = StyleSheet.create({
     color: colors.dark,
   },
 
+  pickerContainer: {
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+
   roleContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -274,10 +334,6 @@ const styles = StyleSheet.create({
   roleText: {
     color: colors.dark,
     fontWeight: 'bold',
-  },
-
-  selectedRoleText: {
-    color: colors.primaryDark,
   },
 
   loginText: {
