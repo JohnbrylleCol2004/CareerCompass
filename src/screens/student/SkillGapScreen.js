@@ -1,5 +1,11 @@
 import React from 'react';
-import { ScrollView, Text, StyleSheet } from 'react-native';
+import {
+  SafeAreaView,
+  ScrollView,
+  Text,
+  StyleSheet,
+} from 'react-native';
+
 import AppHeader from '../../components/AppHeader';
 import ProgressBar from '../../components/ProgressBar';
 import { skills } from '../../data/mockData';
@@ -7,29 +13,52 @@ import { colors } from '../../theme/colors';
 
 export default function SkillGapScreen() {
   return (
-    <ScrollView style={styles.container}>
-      <AppHeader title="Skill Gap Analysis" />
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+        alwaysBounceVertical={false}
+        overScrollMode="never"
+        keyboardShouldPersistTaps="handled"
+      >
+        <AppHeader title="Skill Gap Analysis" />
 
-      <Text style={styles.title}>Skill Gap Indicators</Text>
+        <Text style={styles.title}>
+          Skill Gap Indicators
+        </Text>
 
-      {skills.map((skill) => (
-        <ProgressBar
-          key={skill.id}
-          label={skill.name}
-          current={skill.currentScore}
-          required={skill.requiredScore}
-        />
-      ))}
-    </ScrollView>
+        {skills.map((skill) => (
+          <ProgressBar
+            key={skill.id}
+            label={skill.name}
+            current={skill.currentScore}
+            required={skill.requiredScore}
+          />
+        ))}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: colors.background,
-    padding: 16,
   },
+
+  scrollView: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+
+  container: {
+    flexGrow: 1,
+    padding: 16,
+    paddingBottom: 24,
+  },
+
   title: {
     fontSize: 22,
     fontWeight: 'bold',
