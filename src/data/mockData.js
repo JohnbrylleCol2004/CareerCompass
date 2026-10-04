@@ -11,13 +11,6 @@ export const mockUser = {
   technologies: ['HTML', 'CSS', 'JavaScript'],
 };
 
-export const mockAdmin = {
-  id: 2,
-  name: 'Career Compass Admin',
-  username: 'admin',
-  email: 'admin@careercompass.com',
-  role: 'admin',
-};
 
 export const careers = [
   {
@@ -313,11 +306,3 @@ export const specializations = [
     ],
   },
 ];
-
-export const adminSummary = {
-  totalStudents: 128,
-  activeCareerProfiles: 12,
-  totalSkills: 18,
-  totalElectives: 9,
-  recentUpdate: 'Web Developer career profile was updated.',
-};

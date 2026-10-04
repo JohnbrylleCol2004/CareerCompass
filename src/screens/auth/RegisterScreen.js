@@ -17,6 +17,25 @@ import PrimaryButton from '../../components/PrimaryButton';
 import { useAuth } from '../../context/AuthContext';
 import { colors } from '../../theme/colors';
 
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  SafeAreaView,
+  Alert,
+  TouchableOpacity,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
+
+import { Picker } from '@react-native-picker/picker';
+import PrimaryButton from '../../components/PrimaryButton';
+import { useAuth } from '../../context/AuthContext';
+import { colors } from '../../theme/colors';
+
 export default function RegisterScreen({ navigation }) {
   const { register } = useAuth();
 
@@ -28,7 +47,6 @@ export default function RegisterScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [academicYear, setAcademicYear] = useState('');
-  const [role, setRole] = useState('student');
   const [loading, setLoading] = useState(false);
 
   async function handleRegister() {
@@ -54,7 +72,10 @@ export default function RegisterScreen({ navigation }) {
     }
 
     if (!cleanEmail.includes('@')) {
-      Alert.alert('Invalid Email', 'Please enter a valid email address.');
+      Alert.alert(
+        'Invalid Email',
+        'Please enter a valid email address.'
+      );
       return;
     }
 
@@ -88,7 +109,6 @@ export default function RegisterScreen({ navigation }) {
         email: cleanEmail,
         password,
         academicYear,
-        role,
       });
 
       Alert.alert(
@@ -154,10 +174,10 @@ export default function RegisterScreen({ navigation }) {
           <Text style={styles.label}>Suffix</Text>
           <View style={styles.pickerContainer}>
             <Picker
-            style={styles.picker}
-            selectedValue={suffix}
-            onValueChange={(value) => setSuffix(value)}
-            enabled={!loading}
+              style={styles.picker}
+              selectedValue={suffix}
+              onValueChange={(value) => setSuffix(value)}
+              enabled={!loading}
             >
               <Picker.Item label="No suffix" value="" />
               <Picker.Item label="Jr." value="Jr." />
@@ -171,21 +191,33 @@ export default function RegisterScreen({ navigation }) {
 
           <Text style={styles.label}>Year Level *</Text>
           <View style={styles.pickerContainer}>
-            <View style={styles.pickerContainer}>
             <Picker
-            style={styles.picker}
-            selectedValue={academicYear}
-            onValueChange={(value) => setAcademicYear(value)}
-            enabled={!loading}
+              style={styles.picker}
+              selectedValue={academicYear}
+              onValueChange={(value) => setAcademicYear(value)}
+              enabled={!loading}
             >
-           <Picker.Item label="No suffix" value="" />
-           <Picker.Item label="Jr." value="Jr." />
-           <Picker.Item label="Sr." value="Sr." />
-           <Picker.Item label="II" value="II" />
-           <Picker.Item label="III" value="III" />
-           <Picker.Item label="IV" value="IV" />
-           <Picker.Item label="V" value="V" />
-          </Picker>
+              <Picker.Item
+                label="Select year level"
+                value=""
+              />
+              <Picker.Item
+                label="1st Year"
+                value="1st Year"
+              />
+              <Picker.Item
+                label="2nd Year"
+                value="2nd Year"
+              />
+              <Picker.Item
+                label="3rd Year"
+                value="3rd Year"
+              />
+              <Picker.Item
+                label="4th Year"
+                value="4th Year"
+              />
+            </Picker>
           </View>
 
           <Text style={styles.label}>Username *</Text>
@@ -219,32 +251,6 @@ export default function RegisterScreen({ navigation }) {
             autoCapitalize="none"
           />
 
-          <Text style={styles.label}>Account Type</Text>
-
-          <View style={styles.roleContainer}>
-            <TouchableOpacity
-              style={[
-                styles.roleButton,
-                role === 'student' && styles.selectedRole,
-              ]}
-              onPress={() => setRole('student')}
-              disabled={loading}
-            >
-              <Text style={styles.roleText}>Student</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.roleButton,
-                role === 'admin' && styles.selectedRole,
-              ]}
-              onPress={() => setRole('admin')}
-              disabled={loading}
-            >
-              <Text style={styles.roleText}>Admin</Text>
-            </TouchableOpacity>
-          </View>
-
           <PrimaryButton
             title={loading ? 'Registering...' : 'Register'}
             onPress={loading ? undefined : handleRegister}
@@ -252,6 +258,7 @@ export default function RegisterScreen({ navigation }) {
 
           <TouchableOpacity
             onPress={() => navigation.navigate('Login')}
+            disabled={loading}
           >
             <Text style={styles.loginText}>
               Already have an account? Login
@@ -310,46 +317,20 @@ const styles = StyleSheet.create({
   },
 
   pickerContainer: {
-  width: '55%',
-  height: 48,
-  backgroundColor: colors.white,
-  borderWidth: 1,
-  borderColor: colors.border,
-  borderRadius: 8,
-  overflow: 'hidden',
-  alignSelf: 'flex-start',
-},
-
-picker: {
-  width: '100%',
-  height: 48,
-  fontSize: 14,
-},
-
-  roleContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 15,
-  },
-
-  roleButton: {
-    width: '48%',
-    padding: 14,
-    alignItems: 'center',
-    borderRadius: 8,
+    width: '55%',
+    height: 48,
+    backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.white,
+    borderRadius: 8,
+    overflow: 'hidden',
+    alignSelf: 'flex-start',
   },
 
-  selectedRole: {
-    backgroundColor: colors.secondary,
-    borderColor: colors.primary,
-  },
-
-  roleText: {
-    color: colors.dark,
-    fontWeight: 'bold',
+  picker: {
+    width: '100%',
+    height: 48,
+    fontSize: 14,
   },
 
   loginText: {

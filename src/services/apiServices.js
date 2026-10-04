@@ -8,7 +8,6 @@ import {
   academicRecords,
   projects,
   specializations,
-  adminSummary,
 } from '../data/mockData';
 
 // Student API functions
@@ -82,12 +81,6 @@ export async function getProjects() {
   return projects;
 }
 
-// Admin API functions
-
-export async function getAdminSummary() {
-  await delay(300);
-  return adminSummary;
-}
 
 export async function getCareerProfiles() {
   await delay(300);
