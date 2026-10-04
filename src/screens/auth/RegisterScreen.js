@@ -156,7 +156,8 @@ export default function RegisterScreen({ navigation }) {
             <Picker
             style={styles.picker}
             selectedValue={suffix}
-            onValueChange={setSuffix}
+            onValueChange={(value) => setSuffix(value)}
+            enabled={!loading}
             >
               <Picker.Item label="No suffix" value="" />
               <Picker.Item label="Jr." value="Jr." />
@@ -170,17 +171,21 @@ export default function RegisterScreen({ navigation }) {
 
           <Text style={styles.label}>Year Level *</Text>
           <View style={styles.pickerContainer}>
+            <View style={styles.pickerContainer}>
             <Picker
-              style={styles.picker}
-              selectedValue={academicYear}
-              onValueChange={setAcademicYear}
+            style={styles.picker}
+            selectedValue={academicYear}
+            onValueChange={(value) => setAcademicYear(value)}
+            enabled={!loading}
             >
-              <Picker.Item label="Select year level" value="" />
-              <Picker.Item label="1st Year" value="1st Year" />
-              <Picker.Item label="2nd Year" value="2nd Year" />
-              <Picker.Item label="3rd Year" value="3rd Year" />
-              <Picker.Item label="4th Year" value="4th Year" />
-            </Picker>
+           <Picker.Item label="No suffix" value="" />
+           <Picker.Item label="Jr." value="Jr." />
+           <Picker.Item label="Sr." value="Sr." />
+           <Picker.Item label="II" value="II" />
+           <Picker.Item label="III" value="III" />
+           <Picker.Item label="IV" value="IV" />
+           <Picker.Item label="V" value="V" />
+          </Picker>
           </View>
 
           <Text style={styles.label}>Username *</Text>
@@ -314,10 +319,10 @@ const styles = StyleSheet.create({
   overflow: 'hidden',
   alignSelf: 'flex-start',
 },
-   
-  picker: {
-  height: 48,
+
+picker: {
   width: '100%',
+  height: 48,
   fontSize: 14,
 },
 
