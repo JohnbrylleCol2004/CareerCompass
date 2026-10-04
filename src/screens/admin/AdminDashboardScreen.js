@@ -1,34 +1,75 @@
 import React from 'react';
-import { ScrollView, Text, StyleSheet } from 'react-native';
+import {
+  ScrollView,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+} from 'react-native';
+
 import SummaryCard from '../../components/SummaryCard';
-import { colors } from '../../theme/colors';
 import LogoutButton from '../../components/LogoutButton';
+import { colors } from '../../theme/colors';
 
 export default function AdminDashboardScreen() {
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Admin Dashboard</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+        overScrollMode="never"
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={styles.title}>Admin Dashboard</Text>
 
-      <SummaryCard title="Total Students" value="128" />
-      <SummaryCard title="Active Career Profiles" value="12" />
-      <SummaryCard title="Available Skills" value="18" />
-      <SummaryCard title="Available Electives" value="9" />
-      <SummaryCard
-        title="Recent System Update"
-        description="Web Developer career profile was updated."
-      />
-      
-      <LogoutButton />
-    </ScrollView>
+        <SummaryCard
+          title="Total Students"
+          value="128"
+        />
+
+        <SummaryCard
+          title="Active Career Profiles"
+          value="12"
+        />
+
+        <SummaryCard
+          title="Available Skills"
+          value="18"
+        />
+
+        <SummaryCard
+          title="Available Electives"
+          value="9"
+        />
+
+        <SummaryCard
+          title="Recent System Update"
+          description="Web Developer career profile was updated."
+        />
+
+        <LogoutButton />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+
+  scrollView: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+
+  contentContainer: {
+    flexGrow: 1,
     padding: 16,
   },
+
   title: {
     fontSize: 27,
     fontWeight: 'bold',
