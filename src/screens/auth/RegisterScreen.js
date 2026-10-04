@@ -17,25 +17,6 @@ import PrimaryButton from '../../components/PrimaryButton';
 import { useAuth } from '../../context/AuthContext';
 import { colors } from '../../theme/colors';
 
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  SafeAreaView,
-  Alert,
-  TouchableOpacity,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
-
-import { Picker } from '@react-native-picker/picker';
-import PrimaryButton from '../../components/PrimaryButton';
-import { useAuth } from '../../context/AuthContext';
-import { colors } from '../../theme/colors';
-
 export default function RegisterScreen({ navigation }) {
   const { register } = useAuth();
 
