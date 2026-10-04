@@ -1,134 +1,138 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { supabase } from "../lib/supabase";
 
-const USERS_KEY = '@career_compass_users';
-const SESSION_KEY = '@career_compass_session';
+const SESSION_KEY = "career_compass_session";
 
-const defaultUsers = [
-  {
-    id: 'student-demo',
-    name: 'Juan Dela Cruz',
-    username: 'juan123',
-    email: 'juan@example.com',
-    password: '123456',
-    role: 'student',
-    academicYear: '1st Year',
-    experienceLevel: 'Entry Level',
-    currentCareer: 'Web Developer',
-    interests: ['Web Development', 'Networking'],
-    technologies: ['HTML', 'CSS', 'JavaScript'],
-  },
-  {
-    id: 'admin-demo',
-    name: 'Career Compass Admin',
-    username: 'admin',
-    email: 'admin@careercompass.com',
-    password: 'admin123',
-    role: 'admin',
-  },
-];
-
-async function getUsers() {
-  const savedUsers = await AsyncStorage.getItem(USERS_KEY);
-
-  if (!savedUsers) {
-    await AsyncStorage.setItem(
-      USERS_KEY,
-      JSON.stringify(defaultUsers)
-    );
-
-    return defaultUsers;
-  }
-
-  return JSON.parse(savedUsers);
-}
-
-function removePassword(user) {
-  const { password, ...safeUser } = user;
-  return safeUser;
-}
-
-export async function login(identifier, password) {
-  const users = await getUsers();
-
-  const user = users.find(
-    (item) =>
-      item.username.toLowerCase() === identifier.toLowerCase() ||
-      item.email.toLowerCase() === identifier.toLowerCase()
-  );
-
-  if (!user || user.password !== password) {
-    throw new Error('Invalid username/email or password.');
-  }
-
-  const safeUser = removePassword(user);
-
-  await AsyncStorage.setItem(
-    SESSION_KEY,
-    JSON.stringify(safeUser)
-  );
-
-  return safeUser;
-}
-
+// REGISTER
 export async function register(userData) {
-  const users = await getUsers();
+  const {
+    name,
+    username,
+    email,
+    password,
+    role = "student",
+    academicYear = "1st Year",
+    experienceLevel = "Entry Level",
+  } = userData;
 
-  const existingUser = users.find(
-    (item) =>
-      item.username.toLowerCase() === userData.username.toLowerCase() ||
-      item.email.toLowerCase() === userData.email.toLowerCase()
-  );
+  const { data, error: authError } = await supabase.auth.signUp({
+    email,
+    password,
+  });
 
-  if (existingUser) {
-    throw new Error('Username or email already exists.');
+  if (authError) {
+    throw new Error(authError.message);
   }
 
-  const newUser = {
-    id: Date.now().toString(),
-    name: userData.name,
-    username: userData.username,
-    email: userData.email,
-    password: userData.password,
-    role: userData.role || 'student',
-    academicYear: userData.academicYear || '1st Year',
-    experienceLevel: userData.experienceLevel || 'Entry Level',
-    currentCareer: 'Web Developer',
+  if (!data.user) {
+    throw new Error("Registration failed.");
+  }
+
+  const profile = {
+    id: data.user.id,
+    name,
+    username,
+    email,
+    role,
+    academic_year: academicYear,
+    experience_level: experienceLevel,
+    current_career: "Web Developer",
     interests: [],
     technologies: [],
   };
 
-  const updatedUsers = [...users, newUser];
+  const { data: savedProfile, error: profileError } = await supabase
+    .from("profiles")
+    .insert(profile)
+    .select()
+    .single();
 
-  await AsyncStorage.setItem(
-    USERS_KEY,
-    JSON.stringify(updatedUsers)
-  );
-
-  const safeUser = removePassword(newUser);
+  if (profileError) {
+    throw new Error(profileError.message);
+  }
 
   await AsyncStorage.setItem(
     SESSION_KEY,
-    JSON.stringify(safeUser)
+    JSON.stringify(savedProfile)
   );
 
-  return safeUser;
+  return savedProfile;
 }
 
-export async function getCurrentUser() {
-  const session = await AsyncStorage.getItem(SESSION_KEY);
+// LOGIN
+export async function login(email, password) {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
 
-  if (!session) {
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!data.user) {
+    throw new Error("Login failed.");
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", data.user.id)
+    .single();
+
+  if (profileError) {
+    throw new Error(profileError.message);
+  }
+
+  await AsyncStorage.setItem(
+    SESSION_KEY,
+    JSON.stringify(profile)
+  );
+
+  return profile;
+}
+
+// GET CURRENT USER
+export async function getCurrentUser() {
+  const { data } = await supabase.auth.getSession();
+
+  if (!data.session) {
+    await AsyncStorage.removeItem(SESSION_KEY);
     return null;
   }
 
-  return JSON.parse(session);
+  const userId = data.session.user.id;
+
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", userId)
+    .single();
+
+  if (error) {
+    return null;
+  }
+
+  await AsyncStorage.setItem(
+    SESSION_KEY,
+    JSON.stringify(profile)
+  );
+
+  return profile;
 }
 
+// LOGOUT
 export async function logout() {
+  const { error } = await supabase.auth.signOut();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
   await AsyncStorage.removeItem(SESSION_KEY);
 }
 
+// CLEAR LOCAL SESSION
 export async function clearAllUsers() {
-  await AsyncStorage.removeItem(USERS_KEY);
   await AsyncStorage.removeItem(SESSION_KEY);
 }
