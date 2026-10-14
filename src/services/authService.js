@@ -5,25 +5,7 @@ const SESSION_KEY = 'career_compass_session';
 
 // REGISTER
 export async function register(userData) {
-  const {
-    name,
-    firstName,
-    middleName,
-    lastName,
-    suffix = '',
-    username,
-    email,
-    password,
-    role = 'student',
-    academicYear = '1st Year',
-    experienceLevel = 'Entry Level',
-  } = userData;
-
-  const fullName =
-    name ||
-    [firstName, middleName, lastName, suffix]
-      .filter(Boolean)
-      .join(' ');
+  const { email, password } = userData;
 
   const { data, error: authError } =
     await supabase.auth.signUp({
@@ -41,19 +23,17 @@ export async function register(userData) {
 
   const profile = {
     id: data.user.id,
-    name: fullName,
-    first_name: firstName || '',
-    middle_name: middleName || '',
-    last_name: lastName || '',
-    suffix,
-    username,
-    email,
-    role,
-    academic_year: academicYear,
-    experience_level: experienceLevel,
-    current_career: 'Web Developer',
-    interests: [],
-    technologies: [],
+    username: userData.username.trim(),
+    first_name: userData.firstName.trim(),
+    middle_name: userData.middleName?.trim() || '',
+    last_name: userData.lastName.trim(),
+    student_id: userData.studentId.trim(),
+    program: userData.program.trim(),
+    department: userData.department?.trim() || '',
+    position: userData.position?.trim() || '',
+    career_target: userData.careerTarget?.trim() || '',
+    interests: userData.interests || [],
+    technologies: userData.technologies || [],
   };
 
   const {

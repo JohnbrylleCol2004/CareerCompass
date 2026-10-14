@@ -16,20 +16,20 @@ import { colors } from '../../theme/colors';
 export default function LoginScreen({ navigation }) {
   const { login } = useAuth();
 
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   async function handleLogin() {
-  if (!username || !password) {
+  if (!email || !password) {
     Alert.alert(
       'Missing Information',
-      'Please enter your username and password.'
+      'Please enter your email and password.'
     );
     return;
   }
 
   try {
-    await login(username, password);
+    await login(email, password);
 
     Alert.alert(
       'Login Successful',
@@ -49,12 +49,13 @@ export default function LoginScreen({ navigation }) {
           Access your Career Compass account
         </Text>
 
-        <Text style={styles.label}>Username or Email</Text>
+        <Text style={styles.label}>Email Address</Text>
         <TextInput
           style={styles.input}
-          placeholder="Enter username or email"
-          value={username}
-          onChangeText={setUsername}
+          placeholder="Enter email"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
           autoCapitalize="none"
         />
 

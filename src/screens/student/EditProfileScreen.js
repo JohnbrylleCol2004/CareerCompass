@@ -1,128 +1,52 @@
-import React, { useEffect, useState } from 'react';
-import {
-  ScrollView,
-  Text,
-  TextInput,
-  Alert,
-  StyleSheet,
-} from 'react-native';
+import React, { useState } from 'react';
+import { ScrollView, View, Text, TextInput, Alert, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
 import PrimaryButton from '../../components/PrimaryButton';
-import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../context/AuthContext';
 import { colors } from '../../theme/colors';
 
+const fields = [
+  ['username', 'Username'],
+  ['first_name', 'First Name'],
+  ['middle_name', 'Middle Name'],
+  ['last_name', 'Last Name'],
+  ['student_id', 'Student ID'],
+  ['program', 'Program / Course'],
+  ['department', 'Department'],
+  ['position', 'Position'],
+  ['career_target', 'Career Target'],
+  ['interests', 'Interests (comma-separated)'],
+  ['technologies', 'Technologies (comma-separated)'],
+];
+
 export default function EditProfileScreen({ navigation }) {
-  const [userId, setUserId] = useState(null);
-  const [name, setName] = useState('');
-  const [career, setCareer] = useState('');
-  const [interests, setInterests] = useState('');
-  const [loading, setLoading] = useState(true);
+  const { user, updateProfile } = useAuth();
+  const [values, setValues] = useState(() => Object.fromEntries(
+    fields.map(([key]) => [key, Array.isArray(user?.[key])
+      ? user[key].join(', ') : user?.[key] || ''])
+  ));
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
-
-  async function loadProfile() {
-    try {
-      const {
-        data: { user },
-        error: authError,
-      } = await supabase.auth.getUser();
-
-      if (authError || !user) {
-        throw new Error('No logged-in user found.');
-      }
-
-      setUserId(user.id);
-
-      const {
-        data: profile,
-        error: profileError,
-      } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (profileError) {
-        throw new Error(profileError.message);
-      }
-
-      setName(profile.name || '');
-      setCareer(profile.current_career || '');
-
-      if (Array.isArray(profile.interests)) {
-        setInterests(profile.interests.join(', '));
-      } else {
-        setInterests(profile.interests || '');
-      }
-    } catch (error) {
-      Alert.alert(
-        'Unable to Load Profile',
-        error?.message || 'Something went wrong.'
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
-
   async function saveProfile() {
-    if (!name.trim()) {
-      Alert.alert(
-        'Missing Name',
-        'Please enter your name.'
-      );
+    if (!values.first_name.trim() || !values.last_name.trim() || !values.username.trim()) {
+      Alert.alert('Missing Information', 'Please enter your first name, last name, and username.');
       return;
     }
-
     try {
       setSaving(true);
-
-      const interestsArray = interests
-        .split(',')
-        .map((item) => item.trim())
-        .filter(Boolean);
-
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          name: name.trim(),
-          current_career: career.trim(),
-          interests: interestsArray,
-        })
-        .eq('id', userId);
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      Alert.alert(
-        'Saved',
-        'Your profile has been updated successfully.'
-      );
-
+      const profile = Object.fromEntries(fields.map(([key]) => [key,
+        ['interests', 'technologies'].includes(key)
+          ? values[key].split(',').map(item => item.trim()).filter(Boolean)
+          : values[key].trim(),
+      ]));
+      await updateProfile(profile);
+      Alert.alert('Saved', 'Your profile has been updated successfully.');
       navigation.goBack();
     } catch (error) {
-      Alert.alert(
-        'Update Failed',
-        error?.message ||
-          'Something went wrong while saving.'
-      );
+      Alert.alert('Update Failed', error?.message || 'Unable to save your profile.');
     } finally {
       setSaving(false);
     }
-  }
-
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>
-          Loading profile...
-        </Text>
-      </SafeAreaView>
-    );
   }
 
   return (
@@ -130,50 +54,22 @@ export default function EditProfileScreen({ navigation }) {
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.container}
-        showsVerticalScrollIndicator={false}
-        bounces={false}
-        alwaysBounceVertical={false}
-        overScrollMode="never"
         keyboardShouldPersistTaps="handled"
       >
         <Text style={styles.title}>Edit Profile</Text>
-
-        <Text style={styles.label}>Name</Text>
-
-        <TextInput
-          style={styles.input}
-          value={name}
-          onChangeText={setName}
-          placeholder="Enter your name"
-          placeholderTextColor={colors.gray}
-        />
-
-        <Text style={styles.label}>
-          Career Target
-        </Text>
-
-        <TextInput
-          style={styles.input}
-          value={career}
-          onChangeText={setCareer}
-          placeholder="Enter your career target"
-          placeholderTextColor={colors.gray}
-        />
-
-        <Text style={styles.label}>Interests</Text>
-
-        <TextInput
-          style={[
-            styles.input,
-            styles.interestsInput,
-          ]}
-          value={interests}
-          onChangeText={setInterests}
-          placeholder="Example: Coding, Design, Business"
-          placeholderTextColor={colors.gray}
-          multiline
-        />
-
+        {fields.map(([key, label]) => (
+          <View key={key}>
+            <Text style={styles.label}>{label}</Text>
+            <TextInput
+              style={styles.input}
+              value={values[key]}
+              onChangeText={value => setValues(current => ({ ...current, [key]: value }))}
+              editable={!saving}
+              autoCapitalize={key === 'username' ? 'none' : 'sentences'}
+              multiline={['interests', 'technologies'].includes(key)}
+            />
+          </View>
+        ))}
         <PrimaryButton
           title={saving ? 'Saving...' : 'Save Changes'}
           onPress={saving ? undefined : saveProfile}

@@ -13,7 +13,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Picker } from '@react-native-picker/picker';
 import PrimaryButton from '../../components/PrimaryButton';
 import { useAuth } from '../../context/AuthContext';
 import { colors } from '../../theme/colors';
@@ -43,11 +42,15 @@ export default function RegisterScreen({ navigation }) {
   const { width, fontScale } = useWindowDimensions();
   const useSingleColumn = width / Math.max(fontScale, 1) < 600;
 
-  const [fullName, setFullName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [middleName, setMiddleName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [username, setUsername] = useState('');
+  const [department, setDepartment] = useState('');
+  const [position, setPosition] = useState('');
+  const [careerTarget, setCareerTarget] = useState('');
   const [email, setEmail] = useState('');
   const [studentId, setStudentId] = useState('');
-  const [academicYear, setAcademicYear] = useState('');
-  const [experienceLevel, setExperienceLevel] = useState('');
   const [program, setProgram] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -72,17 +75,17 @@ export default function RegisterScreen({ navigation }) {
   }
 
   async function handleRegister() {
-    const cleanFullName = fullName.trim();
+    const cleanFullName = [firstName.trim(), middleName.trim(), lastName.trim()].filter(Boolean).join(' ');
     const cleanEmail = email.trim().toLowerCase();
     const cleanStudentId = studentId.trim();
     const cleanProgram = program.trim();
 
     if (
-      !cleanFullName ||
+      !firstName.trim() ||
+      !lastName.trim() ||
+      !username.trim() ||
       !cleanEmail ||
       !cleanStudentId ||
-      !academicYear ||
-      !experienceLevel ||
       !cleanProgram ||
       !password ||
       !confirmPassword
@@ -122,16 +125,19 @@ export default function RegisterScreen({ navigation }) {
       setLoading(true);
 
       await register({
-        name: cleanFullName,
+        firstName,
+        middleName,
+        lastName,
+        username,
+        department,
+        position,
+        careerTarget,
         email: cleanEmail,
         studentId: cleanStudentId,
-        academicYear,
-        experienceLevel,
         program: cleanProgram,
         interests,
         technologies,
         password,
-        role: 'student',
       });
 
       Alert.alert(
@@ -199,163 +205,33 @@ export default function RegisterScreen({ navigation }) {
             </Text>
           </View>
 
-          <View style={[styles.formRow, useSingleColumn && styles.formColumn]}>
-            <View style={[styles.halfField, useSingleColumn && styles.fullField]}>
-              <Text style={styles.label}>Full Name *</Text>
-
+          {[
+            ['First Name *', firstName, setFirstName, 'Enter first name'],
+            ['Middle Name', middleName, setMiddleName, 'Enter middle name (optional)'],
+            ['Last Name *', lastName, setLastName, 'Enter last name'],
+            ['Username *', username, setUsername, 'Choose a username'],
+            ['Email Address *', email, setEmail, 'example@email.com'],
+            ['Student ID *', studentId, setStudentId, 'Example: 2024-00123'],
+            ['Program / Course *', program, setProgram, 'Example: BS Information Technology'],
+            ['Department', department, setDepartment, 'Enter department'],
+            ['Position', position, setPosition, 'Enter position (optional)'],
+            ['Career Target', careerTarget, setCareerTarget, 'Example: Web Developer'],
+          ].map(([label, value, onChangeText, placeholder]) => (
+            <View key={label}>
+              <Text style={styles.label}>{label}</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Example: Juan Dela Cruz"
+                value={value}
+                onChangeText={onChangeText}
+                placeholder={placeholder}
                 placeholderTextColor={colors.gray}
-                value={fullName}
-                onChangeText={setFullName}
-                autoCapitalize="words"
-              />
-            </View>
-
-            <View style={[styles.halfField, useSingleColumn && styles.fullField]}>
-              <Text style={styles.label}>Email Address *</Text>
-
-              <TextInput
-                style={styles.input}
-                placeholder="example@email.com"
-                placeholderTextColor={colors.gray}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
+                keyboardType={label === 'Email Address *' ? 'email-address' : 'default'}
+                autoCapitalize={['Username *', 'Email Address *', 'Student ID *'].includes(label) ? 'none' : 'words'}
                 autoCorrect={false}
+                editable={!loading}
               />
             </View>
-          </View>
-
-          <View style={[styles.formRow, useSingleColumn && styles.formColumn]}>
-            <View style={[styles.halfField, useSingleColumn && styles.fullField]}>
-              <Text style={styles.label}>
-                Student ID *
-              </Text>
-
-              <TextInput
-                style={styles.input}
-                placeholder="Example: 2024-00123"
-                placeholderTextColor={colors.gray}
-                value={studentId}
-                onChangeText={setStudentId}
-                autoCapitalize="none"
-              />
-            </View>
-
-            <View style={[styles.halfField, useSingleColumn && styles.fullField]}>
-              <Text style={styles.label}>
-                Account Type
-              </Text>
-
-              <View style={styles.staticInput}>
-                <Text style={styles.staticText}>
-                  Register as Student
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          <View style={[styles.formRow, useSingleColumn && styles.formColumn]}>
-            <View style={[styles.halfField, useSingleColumn && styles.fullField]}>
-              <Text style={styles.label}>
-                Academic Year *
-              </Text>
-
-              <View style={styles.pickerContainer}>
-                <Picker
-                  mode="dropdown"
-                  selectedValue={academicYear}
-                  onValueChange={setAcademicYear}
-                  style={styles.picker}
-                  itemStyle={styles.pickerItem}
-                  dropdownIconColor={colors.dark}
-                >
-                  <Picker.Item
-                    style={styles.pickerItem}
-                    label="Select academic year"
-                    value=""
-                  />
-                  <Picker.Item
-                    style={styles.pickerItem}
-                    label="1st Year"
-                    value="1st Year"
-                  />
-                  <Picker.Item
-                    style={styles.pickerItem}
-                    label="2nd Year"
-                    value="2nd Year"
-                  />
-                  <Picker.Item
-                    style={styles.pickerItem}
-                    label="3rd Year"
-                    value="3rd Year"
-                  />
-                  <Picker.Item
-                    style={styles.pickerItem}
-                    label="4th Year"
-                    value="4th Year"
-                  />
-                </Picker>
-              </View>
-            </View>
-
-            <View style={[styles.halfField, useSingleColumn && styles.fullField]}>
-              <Text style={styles.label}>
-                Experience Level *
-              </Text>
-
-              <View style={styles.pickerContainer}>
-                <Picker
-                  mode="dropdown"
-                  selectedValue={experienceLevel}
-                  onValueChange={setExperienceLevel}
-                  style={styles.picker}
-                  itemStyle={styles.pickerItem}
-                  dropdownIconColor={colors.dark}
-                >
-                  <Picker.Item
-                    style={styles.pickerItem}
-                    label="Select experience level"
-                    value=""
-                  />
-                  <Picker.Item
-                    style={styles.pickerItem}
-                    label="Beginner"
-                    value="Beginner"
-                  />
-                  <Picker.Item
-                    style={styles.pickerItem}
-                    label="Entry Level"
-                    value="Entry Level"
-                  />
-                  <Picker.Item
-                    style={styles.pickerItem}
-                    label="Intermediate"
-                    value="Intermediate"
-                  />
-                  <Picker.Item
-                    style={styles.pickerItem}
-                    label="Advanced"
-                    value="Advanced"
-                  />
-                </Picker>
-              </View>
-            </View>
-          </View>
-
-          <Text style={styles.label}>Program / Course *</Text>
-
-          <TextInput
-            style={styles.input}
-            placeholder="Example: BS Information Technology"
-            placeholderTextColor={colors.gray}
-            value={program}
-            onChangeText={setProgram}
-            autoCapitalize="words"
-          />
+          ))}
 
           <View style={styles.sectionBox}>
             <Text style={styles.sectionTitle}>

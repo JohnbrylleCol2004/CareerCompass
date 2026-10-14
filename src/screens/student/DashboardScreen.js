@@ -32,7 +32,7 @@ export default function DashboardScreen({ navigation }) {
         />
 
         <Text style={styles.heading}>
-          Welcome, {user?.name || 'Student'}!
+          Welcome, {user?.first_name || user?.username || 'Student'}!
         </Text>
 
         <SummaryCard

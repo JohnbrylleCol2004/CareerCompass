@@ -2,7 +2,6 @@ import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import {
   ScrollView,
-  Text,
   StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -39,27 +38,27 @@ export default function ProfileScreen({ navigation }) {
 
         <SummaryCard
           title="Name"
-          value={user?.name || 'Not provided'}
+          value={[user?.first_name, user?.middle_name, user?.last_name].filter(Boolean).join(' ') || 'Not provided'}
         />
 
         <SummaryCard
-          title="Academic Year"
+          title="Student ID"
           value={
-            user?.academic_year || 'Not provided'
+            user?.student_id || 'Not provided'
           }
         />
 
         <SummaryCard
-          title="Experience Level"
+          title="Program / Course"
           value={
-            user?.experience_level || 'Not provided'
+            user?.program || 'Not provided'
           }
         />
 
         <SummaryCard
           title="Career Target"
           value={
-            user?.current_career || 'Not provided'
+            user?.career_target || 'Not provided'
           }
         />
 
@@ -72,6 +71,10 @@ export default function ProfileScreen({ navigation }) {
           title="Technologies"
           description={technologies}
         />
+
+        <SummaryCard title="Username" value={user?.username || 'Not provided'} />
+        <SummaryCard title="Department" value={user?.department || 'Not provided'} />
+        <SummaryCard title="Position" value={user?.position || 'Not provided'} />
 
         <PrimaryButton
           title="Edit Profile"

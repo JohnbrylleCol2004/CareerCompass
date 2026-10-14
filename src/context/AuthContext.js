@@ -10,6 +10,7 @@ import {
   register as registerUser,
   logout as logoutUser,
   getCurrentUser,
+  updateProfile as saveProfile,
 } from '../services/authService';
 
 const AuthContext = createContext(null);
@@ -19,13 +20,20 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    async function restoreSession() {
+      try {
+        setUser(await getCurrentUser());
+      } finally {
+        setLoading(false);
+      }
+    }
     restoreSession();
   }, []);
 
-  async function restoreSession() {
-    const savedUser = await getCurrentUser();
-    setUser(savedUser);
-    setLoading(false);
+  async function updateProfile(profileData) {
+    const updatedUser = await saveProfile(profileData);
+    setUser(updatedUser);
+    return updatedUser;
   }
 
   async function login(identifier, password) {
@@ -58,6 +66,7 @@ export function AuthProvider({ children }) {
         login,
         register,
         logout,
+        updateProfile,
       }}
     >
       {children}
