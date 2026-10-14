@@ -4,9 +4,9 @@ import {
   Text,
   TextInput,
   StyleSheet,
-  SafeAreaView,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import PrimaryButton from '../../components/PrimaryButton';
 import { colors } from '../../theme/colors';

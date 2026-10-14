@@ -1,10 +1,10 @@
 import React from 'react';
 import {
-  SafeAreaView,
   ScrollView,
   Text,
   StyleSheet,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AppHeader from '../../components/AppHeader';
 import ProgressBar from '../../components/ProgressBar';

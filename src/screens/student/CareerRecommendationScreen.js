@@ -3,8 +3,8 @@ import {
   ScrollView,
   Text,
   StyleSheet,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import SummaryCard from '../../components/SummaryCard';
 import { careers } from '../../data/mockData';

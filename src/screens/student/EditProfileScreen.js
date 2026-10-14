@@ -5,8 +5,8 @@ import {
   TextInput,
   Alert,
   StyleSheet,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import PrimaryButton from '../../components/PrimaryButton';
 import { supabase } from '../../lib/supabase';
