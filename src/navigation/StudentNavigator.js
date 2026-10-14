@@ -25,9 +25,6 @@ function StudentTabs() {
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.gray,
         tabBarStyle: {
-          height: 65,
-          paddingBottom: 8,
-          paddingTop: 6,
           backgroundColor: colors.white,
         },
         tabBarIcon: ({ color, size }) => {

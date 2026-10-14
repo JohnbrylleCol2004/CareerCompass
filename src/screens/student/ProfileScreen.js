@@ -24,7 +24,7 @@ export default function ProfileScreen({ navigation }) {
     : user?.technologies || 'No technologies added';
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.container}
