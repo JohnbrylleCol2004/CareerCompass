@@ -7,6 +7,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import AppHeader from '../../components/AppHeader';
+import ProfilePhoto from '../../components/ProfilePhoto';
 import SummaryCard from '../../components/SummaryCard';
 import PrimaryButton from '../../components/PrimaryButton';
 import LogoutButton from '../../components/LogoutButton';
@@ -35,6 +36,7 @@ export default function ProfileScreen({ navigation }) {
         keyboardShouldPersistTaps="handled"
       >
         <AppHeader title="Student Profile" />
+        <ProfilePhoto />
 
         <SummaryCard
           title="Name"
