@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Platform,
   TouchableOpacity,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -39,6 +40,8 @@ const technologyOptions = [
 
 export default function RegisterScreen({ navigation }) {
   const { register } = useAuth();
+  const { width, fontScale } = useWindowDimensions();
+  const useSingleColumn = width / Math.max(fontScale, 1) < 600;
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -150,6 +153,7 @@ export default function RegisterScreen({ navigation }) {
       <TouchableOpacity
         style={[
           styles.checkOption,
+          useSingleColumn && styles.fullWidthOption,
           selected && styles.selectedOption,
         ]}
         onPress={onPress}
@@ -195,8 +199,8 @@ export default function RegisterScreen({ navigation }) {
             </Text>
           </View>
 
-          <View style={styles.formRow}>
-            <View style={styles.halfField}>
+          <View style={[styles.formRow, useSingleColumn && styles.formColumn]}>
+            <View style={[styles.halfField, useSingleColumn && styles.fullField]}>
               <Text style={styles.label}>Full Name *</Text>
 
               <TextInput
@@ -209,7 +213,7 @@ export default function RegisterScreen({ navigation }) {
               />
             </View>
 
-            <View style={styles.halfField}>
+            <View style={[styles.halfField, useSingleColumn && styles.fullField]}>
               <Text style={styles.label}>Email Address *</Text>
 
               <TextInput
@@ -225,8 +229,8 @@ export default function RegisterScreen({ navigation }) {
             </View>
           </View>
 
-          <View style={styles.formRow}>
-            <View style={styles.halfField}>
+          <View style={[styles.formRow, useSingleColumn && styles.formColumn]}>
+            <View style={[styles.halfField, useSingleColumn && styles.fullField]}>
               <Text style={styles.label}>
                 Student ID *
               </Text>
@@ -241,7 +245,7 @@ export default function RegisterScreen({ navigation }) {
               />
             </View>
 
-            <View style={styles.halfField}>
+            <View style={[styles.halfField, useSingleColumn && styles.fullField]}>
               <Text style={styles.label}>
                 Account Type
               </Text>
@@ -254,8 +258,8 @@ export default function RegisterScreen({ navigation }) {
             </View>
           </View>
 
-          <View style={styles.formRow}>
-            <View style={styles.halfField}>
+          <View style={[styles.formRow, useSingleColumn && styles.formColumn]}>
+            <View style={[styles.halfField, useSingleColumn && styles.fullField]}>
               <Text style={styles.label}>
                 Academic Year *
               </Text>
@@ -266,25 +270,31 @@ export default function RegisterScreen({ navigation }) {
                   selectedValue={academicYear}
                   onValueChange={setAcademicYear}
                   style={styles.picker}
+                  itemStyle={styles.pickerItem}
                   dropdownIconColor={colors.dark}
                 >
                   <Picker.Item
+                    style={styles.pickerItem}
                     label="Select academic year"
                     value=""
                   />
                   <Picker.Item
+                    style={styles.pickerItem}
                     label="1st Year"
                     value="1st Year"
                   />
                   <Picker.Item
+                    style={styles.pickerItem}
                     label="2nd Year"
                     value="2nd Year"
                   />
                   <Picker.Item
+                    style={styles.pickerItem}
                     label="3rd Year"
                     value="3rd Year"
                   />
                   <Picker.Item
+                    style={styles.pickerItem}
                     label="4th Year"
                     value="4th Year"
                   />
@@ -292,7 +302,7 @@ export default function RegisterScreen({ navigation }) {
               </View>
             </View>
 
-            <View style={styles.halfField}>
+            <View style={[styles.halfField, useSingleColumn && styles.fullField]}>
               <Text style={styles.label}>
                 Experience Level *
               </Text>
@@ -303,25 +313,31 @@ export default function RegisterScreen({ navigation }) {
                   selectedValue={experienceLevel}
                   onValueChange={setExperienceLevel}
                   style={styles.picker}
+                  itemStyle={styles.pickerItem}
                   dropdownIconColor={colors.dark}
                 >
                   <Picker.Item
+                    style={styles.pickerItem}
                     label="Select experience level"
                     value=""
                   />
                   <Picker.Item
+                    style={styles.pickerItem}
                     label="Beginner"
                     value="Beginner"
                   />
                   <Picker.Item
+                    style={styles.pickerItem}
                     label="Entry Level"
                     value="Entry Level"
                   />
                   <Picker.Item
+                    style={styles.pickerItem}
                     label="Intermediate"
                     value="Intermediate"
                   />
                   <Picker.Item
+                    style={styles.pickerItem}
                     label="Advanced"
                     value="Advanced"
                   />
@@ -383,8 +399,8 @@ export default function RegisterScreen({ navigation }) {
             </View>
           </View>
 
-          <View style={styles.formRow}>
-            <View style={styles.halfField}>
+          <View style={[styles.formRow, useSingleColumn && styles.formColumn]}>
+            <View style={[styles.halfField, useSingleColumn && styles.fullField]}>
               <Text style={styles.label}>Password *</Text>
 
               <TextInput
@@ -398,7 +414,7 @@ export default function RegisterScreen({ navigation }) {
               />
             </View>
 
-            <View style={styles.halfField}>
+            <View style={[styles.halfField, useSingleColumn && styles.fullField]}>
               <Text style={styles.label}>
                 Confirm Password *
               </Text>
@@ -484,41 +500,58 @@ const styles = StyleSheet.create({
 
   formRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: 12,
+    columnGap: 12,
+  },
+
+  formColumn: {
+    flexDirection: 'column',
+  },
+
+  fullField: {
+    flexBasis: 'auto',
+    flexGrow: 0,
+    width: '100%',
   },
 
   halfField: {
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 240,
+    minWidth: 0,
   },
 
   label: {
     color: colors.dark,
     fontWeight: 'bold',
     fontSize: 13,
+    lineHeight: 20,
     marginTop: 12,
     marginBottom: 6,
   },
 
   input: {
-    minHeight: 46,
+    minHeight: 50,
     backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 9,
     paddingHorizontal: 12,
+    paddingVertical: 12,
     color: colors.dark,
     fontSize: 14,
   },
 
   staticInput: {
-    minHeight: 46,
+    minHeight: 50,
     justifyContent: 'center',
     backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: '#36A88F',
     borderRadius: 9,
     paddingHorizontal: 12,
+    paddingVertical: 12,
   },
 
   staticText: {
@@ -527,7 +560,7 @@ const styles = StyleSheet.create({
   },
 
   pickerContainer: {
-    height: 46,
+    minHeight: 56,
     justifyContent: 'center',
     backgroundColor: colors.white,
     borderWidth: 1,
@@ -537,8 +570,14 @@ const styles = StyleSheet.create({
   },
 
   picker: {
-    height: 46,
+    height: Platform.OS === 'ios' ? 216 : 56,
+    width: '100%',
     color: colors.dark,
+    fontSize: 14,
+  },
+
+  pickerItem: {
+    fontSize: 14,
   },
 
   sectionBox: {
@@ -571,15 +610,20 @@ const styles = StyleSheet.create({
   },
 
   checkOption: {
-    width: '31%',
+    width: '48%',
     minHeight: 42,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 8,
     backgroundColor: colors.white,
+  },
+
+  fullWidthOption: {
+    width: '100%',
   },
 
   selectedOption: {
@@ -588,6 +632,7 @@ const styles = StyleSheet.create({
   },
 
   checkbox: {
+    flexShrink: 0,
     width: 15,
     height: 15,
     borderWidth: 1,
