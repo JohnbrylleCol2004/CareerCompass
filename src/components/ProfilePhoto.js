@@ -77,17 +77,10 @@ export default function ProfilePhoto() {
         </View>
       )}
         <View style={styles.addBadge}>
-          <Text style={styles.plus} allowFontScaling={false}>+</Text>
+          {uploading ? <ActivityIndicator color={colors.white} /> : (
+            <Text style={styles.plus} allowFontScaling={false}>+</Text>
+          )}
         </View>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={choosePhoto} disabled={uploading}
-        accessibilityRole="button" accessibilityState={{ disabled: uploading, busy: uploading }}>
-        <View style={styles.buttonIcon}>
-          {uploading ? <ActivityIndicator color={colors.white} /> : iconsLoaded ? (
-            <Ionicons name="camera" size={26} color={colors.white} />
-          ) : <Text style={styles.plus} allowFontScaling={false}>+</Text>}
-        </View>
-        <Text style={styles.buttonText}>{uploading ? 'Saving photo...' : path ? 'Change photo' : 'Add photo'}</Text>
       </TouchableOpacity>
       {photoError && <Text style={styles.error}>Photo could not load. Check your connection and reopen Profile.</Text>}
     </View>
@@ -102,11 +95,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center' },
   plus: { color: colors.white, fontSize: 28, lineHeight: 30, textAlign: 'center' },
   initial: { color: colors.dark, fontSize: 40, fontWeight: 'bold' },
-  buttonIcon: { minWidth: 32, minHeight: 32, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   photo: { width: 112, height: 112, borderRadius: 56, backgroundColor: colors.secondary },
   placeholder: { alignItems: 'center', justifyContent: 'center' },
-  button: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: colors.dark,
-    borderRadius: 10, paddingHorizontal: 18, paddingVertical: 12, minHeight: 44 },
-  buttonText: { color: colors.white, fontSize: 14, fontWeight: '600' },
   error: { color: colors.danger, textAlign: 'center', fontSize: 13 },
 });
