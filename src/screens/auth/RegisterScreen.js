@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
+  Keyboard,
   ScrollView,
   View,
   Text,
@@ -11,7 +12,7 @@ import {
   TouchableOpacity,
   useWindowDimensions,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import PrimaryButton from '../../components/PrimaryButton';
 import { useAuth } from '../../context/AuthContext';
@@ -39,6 +40,11 @@ const technologyOptions = [
 
 export default function RegisterScreen({ navigation }) {
   const { register } = useAuth();
+  const insets = useSafeAreaInsets();
+  const scrollRef = useRef(null);
+  const fieldPositions = useRef({});
+  const passwordRowY = useRef(0);
+  const focusedField = useRef(null);
   const { width, fontScale } = useWindowDimensions();
   const useSingleColumn = width / Math.max(fontScale, 1) < 600;
 
@@ -57,6 +63,26 @@ export default function RegisterScreen({ navigation }) {
   const [interests, setInterests] = useState([]);
   const [technologies, setTechnologies] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  function revealFocusedField() {
+    const key = focusedField.current;
+    const fieldY = fieldPositions.current[key];
+    if (typeof fieldY !== 'number') return;
+    // Password fields are nested inside a responsive row; include its offset.
+    const y = fieldY + (['password', 'confirmPassword'].includes(key) ? passwordRowY.current : 0);
+    scrollRef.current?.scrollTo({ y: Math.max(0, y - 12), animated: true });
+  }
+
+  function focusField(key) {
+    focusedField.current = key;
+    revealFocusedField();
+  }
+
+  useEffect(() => {
+    // Reposition after the keyboard has finished changing the available height.
+    const subscription = Keyboard.addListener('keyboardDidShow', revealFocusedField);
+    return () => subscription.remove();
+  }, []);
 
   function toggleInterest(item) {
     setInterests((currentItems) =>
@@ -183,15 +209,20 @@ export default function RegisterScreen({ navigation }) {
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={insets.top}
       >
         <ScrollView
+          ref={scrollRef}
+          style={styles.scrollView}
+          onLayout={revealFocusedField}
           contentContainerStyle={styles.container}
           showsVerticalScrollIndicator={false}
           bounces={false}
           alwaysBounceVertical={false}
           overScrollMode="never"
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
         >
           <View style={styles.header}>
             <Text style={styles.headerIcon}>♙</Text>
@@ -217,7 +248,7 @@ export default function RegisterScreen({ navigation }) {
             ['Position', position, setPosition, 'Enter position (optional)'],
             ['Career Target', careerTarget, setCareerTarget, 'Example: Web Developer'],
           ].map(([label, value, onChangeText, placeholder]) => (
-            <View key={label}>
+            <View key={label} onLayout={event => { fieldPositions.current[label] = event.nativeEvent.layout.y; }}>
               <Text style={styles.label}>{label}</Text>
               <TextInput
                 style={styles.input}
@@ -229,6 +260,8 @@ export default function RegisterScreen({ navigation }) {
                 autoCapitalize={['Username *', 'Email Address *', 'Student ID *'].includes(label) ? 'none' : 'words'}
                 autoCorrect={false}
                 editable={!loading}
+                onFocus={() => focusField(label)}
+                onBlur={() => { focusedField.current = null; }}
               />
             </View>
           ))}
@@ -275,8 +308,10 @@ export default function RegisterScreen({ navigation }) {
             </View>
           </View>
 
-          <View style={[styles.formRow, useSingleColumn && styles.formColumn]}>
-            <View style={[styles.halfField, useSingleColumn && styles.fullField]}>
+          <View style={[styles.formRow, useSingleColumn && styles.formColumn]}
+            onLayout={event => { passwordRowY.current = event.nativeEvent.layout.y; }}>
+            <View style={[styles.halfField, useSingleColumn && styles.fullField]}
+              onLayout={event => { fieldPositions.current.password = event.nativeEvent.layout.y; }}>
               <Text style={styles.label}>Password *</Text>
 
               <TextInput
@@ -285,12 +320,16 @@ export default function RegisterScreen({ navigation }) {
                 placeholderTextColor={colors.gray}
                 value={password}
                 onChangeText={setPassword}
+                onFocus={() => focusField('password')}
+                onBlur={() => { focusedField.current = null; }}
+                editable={!loading}
                 secureTextEntry
                 autoCapitalize="none"
               />
             </View>
 
-            <View style={[styles.halfField, useSingleColumn && styles.fullField]}>
+            <View style={[styles.halfField, useSingleColumn && styles.fullField]}
+              onLayout={event => { fieldPositions.current.confirmPassword = event.nativeEvent.layout.y; }}>
               <Text style={styles.label}>
                 Confirm Password *
               </Text>
@@ -301,6 +340,9 @@ export default function RegisterScreen({ navigation }) {
                 placeholderTextColor={colors.gray}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
+                onFocus={() => focusField('confirmPassword')}
+                onBlur={() => { focusedField.current = null; }}
+                editable={!loading}
                 secureTextEntry
                 autoCapitalize="none"
               />
@@ -334,6 +376,10 @@ const styles = StyleSheet.create({
   },
 
   keyboardView: {
+    flex: 1,
+  },
+
+  scrollView: {
     flex: 1,
   },
 
