@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts } from 'expo-font';
@@ -38,17 +38,53 @@ export default function ProfilePhoto() {
     return () => { active = false; clearInterval(timer); };
   }, [path]));
 
-  async function choosePhoto() {
+  function choosePhoto() {
+    if (busy.current) return;
+    Alert.alert('Profile photo', 'Choose how to add your photo.', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Choose from Gallery', onPress: () => savePhoto() },
+      { text: 'Take Photo', onPress: chooseCamera },
+    ]);
+  }
+
+  function chooseCamera() {
+    Alert.alert('Take photo', 'Which camera would you like to use?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Front Camera', onPress: () => savePhoto(ImagePicker.CameraType.front) },
+      { text: 'Back Camera', onPress: () => savePhoto(ImagePicker.CameraType.back) },
+    ]);
+  }
+
+  async function savePhoto(cameraType) {
     if (busy.current) return;
     busy.current = true;
     setUploading(true);
     try {
-      const result = await ImagePicker.launchImageLibraryAsync({
+      if (cameraType) {
+        const permission = await ImagePicker.requestCameraPermissionsAsync();
+        if (!permission.granted) {
+          Alert.alert('Camera permission needed',
+            permission.canAskAgain
+              ? 'Allow camera access to take a profile photo. You can also choose a photo from your gallery.'
+              : 'Enable camera access in your device settings to take a profile photo.',
+            permission.canAskAgain ? [{ text: 'OK' }] : [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Open Settings', onPress: () => Linking.openSettings().catch(() => {
+                Alert.alert('Unable to open settings', 'Open your device settings and enable camera access for CareerCompass.');
+              }) },
+            ]);
+          return;
+        }
+      }
+      const options = {
         mediaTypes: ['images'],
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
-      });
+      };
+      const result = cameraType
+        ? await ImagePicker.launchCameraAsync({ ...options, cameraType })
+        : await ImagePicker.launchImageLibraryAsync(options);
       if (result.canceled || !result.assets?.[0]) return;
       const uploadedPath = await uploadProfilePhoto(result.assets[0]);
       await updateProfile({ profile_image_path: uploadedPath });

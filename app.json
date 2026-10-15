@@ -36,7 +36,7 @@
         "expo-image-picker",
         {
           "photosPermission": "Allow CareerCompass to choose your profile photo.",
-          "cameraPermission": false,
+          "cameraPermission": "Allow CareerCompass to take your profile photo.",
           "microphonePermission": false
         }
       ]
