@@ -66,12 +66,12 @@ export default function ProfileScreen({ navigation }) {
 
         <SummaryCard
           title="Interests"
-          description={interests}
+          value={interests || 'No interests added'}
         />
 
         <SummaryCard
           title="Technologies"
-          description={technologies}
+          value={technologies || 'No technologies added'}
         />
 
         <SummaryCard title="Username" value={user?.username || 'Not provided'} />

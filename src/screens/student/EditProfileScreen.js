@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { ScrollView, View, Text, TextInput, Alert, StyleSheet } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { KeyboardAvoidingView, Platform, ScrollView, View, Text, TextInput, Alert, StyleSheet } from 'react-native';
+import { useHeaderHeight } from '@react-navigation/elements';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PrimaryButton from '../../components/PrimaryButton';
 import { useAuth } from '../../context/AuthContext';
@@ -21,6 +22,17 @@ const fields = [
 
 export default function EditProfileScreen({ navigation }) {
   const { user, updateProfile } = useAuth();
+  const headerHeight = useHeaderHeight();
+  const scrollRef = useRef(null);
+  const fieldPositions = useRef({});
+  const focusedField = useRef(null);
+
+  function revealFocusedField() {
+    const y = fieldPositions.current[focusedField.current];
+    if (typeof y === 'number') {
+      scrollRef.current?.scrollTo({ y: Math.max(0, y - 12), animated: true });
+    }
+  }
   const [values, setValues] = useState(() => Object.fromEntries(
     fields.map(([key]) => [key, Array.isArray(user?.[key])
       ? user[key].join(', ') : user?.[key] || ''])
@@ -50,18 +62,28 @@ export default function EditProfileScreen({ navigation }) {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['left', 'right', 'bottom']}>
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={headerHeight}
+      >
       <ScrollView
+        ref={scrollRef}
+        onLayout={revealFocusedField}
         style={styles.scrollView}
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
       >
         <Text style={styles.title}>Edit Profile</Text>
         {fields.map(([key, label]) => (
-          <View key={key}>
+          <View key={key} onLayout={event => { fieldPositions.current[key] = event.nativeEvent.layout.y; }}>
             <Text style={styles.label}>{label}</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, ['interests', 'technologies'].includes(key) && styles.interestsInput]}
+              onFocus={() => { focusedField.current = key; revealFocusedField(); }}
+              onBlur={() => { if (focusedField.current === key) focusedField.current = null; }}
               value={values[key]}
               onChangeText={value => setValues(current => ({ ...current, [key]: value }))}
               editable={!saving}
@@ -75,6 +97,7 @@ export default function EditProfileScreen({ navigation }) {
           onPress={saving ? undefined : saveProfile}
         />
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -90,9 +113,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
 
+  keyboardView: {
+    flex: 1,
+  },
+
   container: {
     flexGrow: 1,
     padding: 20,
+    paddingBottom: 40,
   },
 
   loadingContainer: {
