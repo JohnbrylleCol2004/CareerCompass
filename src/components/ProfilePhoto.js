@@ -1,12 +1,14 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { ActivityIndicator, Alert, Image, Linking, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
+import { useCameraPermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts } from 'expo-font';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../context/AuthContext';
 import { getProfilePhotoUrl, uploadProfilePhoto } from '../services/profilePhotoService';
 import { colors } from '../theme/colors';
+import ProfileCamera from './ProfileCamera';
 
 export default function ProfilePhoto() {
   const { user, updateProfile } = useAuth();
@@ -14,6 +16,9 @@ export default function ProfilePhoto() {
   const [photoUrl, setPhotoUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [photoError, setPhotoError] = useState(false);
+  const [cameraFacing, setCameraFacing] = useState(null);
+  const [, requestCameraPermission] = useCameraPermissions();
+  const isFocused = useIsFocused();
   const busy = useRef(false);
   const path = user?.profile_image_path;
 
@@ -50,43 +55,56 @@ export default function ProfilePhoto() {
   function chooseCamera() {
     Alert.alert('Take photo', 'Which camera would you like to use?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Front Camera', onPress: () => savePhoto(ImagePicker.CameraType.front) },
-      { text: 'Back Camera', onPress: () => savePhoto(ImagePicker.CameraType.back) },
+      { text: 'Front Camera', onPress: () => openCamera('front') },
+      { text: 'Back Camera', onPress: () => openCamera('back') },
     ]);
   }
 
-  async function savePhoto(cameraType) {
+  async function openCamera(facing) {
     if (busy.current) return;
     busy.current = true;
+    try {
+      const permission = await requestCameraPermission();
+      if (!permission.granted) {
+        Alert.alert('Camera permission needed',
+          permission.canAskAgain
+            ? 'Allow camera access to take a profile photo. You can also choose a photo from your gallery.'
+            : 'Enable camera access in your device settings to take a profile photo.',
+          permission.canAskAgain ? [{ text: 'OK' }] : [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Settings', onPress: () => Linking.openSettings().catch(() => {
+              Alert.alert('Unable to open settings', 'Open your device settings and enable camera access for CareerCompass.');
+            }) },
+          ]);
+        return;
+      }
+      setCameraFacing(facing);
+    } catch (error) {
+      Alert.alert('Unable to open camera', error?.message || 'Please try again.');
+    } finally {
+      busy.current = false;
+    }
+  }
+
+  async function savePhoto(capturedPhoto) {
+    if (busy.current) return;
+    busy.current = true;
+    setCameraFacing(null);
     setUploading(true);
     try {
-      if (cameraType) {
-        const permission = await ImagePicker.requestCameraPermissionsAsync();
-        if (!permission.granted) {
-          Alert.alert('Camera permission needed',
-            permission.canAskAgain
-              ? 'Allow camera access to take a profile photo. You can also choose a photo from your gallery.'
-              : 'Enable camera access in your device settings to take a profile photo.',
-            permission.canAskAgain ? [{ text: 'OK' }] : [
-              { text: 'Cancel', style: 'cancel' },
-              { text: 'Open Settings', onPress: () => Linking.openSettings().catch(() => {
-                Alert.alert('Unable to open settings', 'Open your device settings and enable camera access for CareerCompass.');
-              }) },
-            ]);
-          return;
-        }
-      }
       const options = {
         mediaTypes: ['images'],
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
       };
-      const result = cameraType
-        ? await ImagePicker.launchCameraAsync({ ...options, cameraType })
-        : await ImagePicker.launchImageLibraryAsync(options);
-      if (result.canceled || !result.assets?.[0]) return;
-      const uploadedPath = await uploadProfilePhoto(result.assets[0]);
+      let asset = capturedPhoto;
+      if (!asset) {
+        const result = await ImagePicker.launchImageLibraryAsync(options);
+        if (result.canceled || !result.assets?.[0]) return;
+        asset = result.assets[0];
+      }
+      const uploadedPath = await uploadProfilePhoto(asset);
       await updateProfile({ profile_image_path: uploadedPath });
     } catch (error) {
       Alert.alert('Unable to save photo', error?.message || 'Please try again.');
@@ -98,6 +116,10 @@ export default function ProfilePhoto() {
 
   return (
     <View style={styles.container}>
+      <Modal visible={!!cameraFacing && isFocused} animationType="slide" onRequestClose={() => setCameraFacing(null)}>
+        {!!cameraFacing && isFocused && <ProfileCamera initialFacing={cameraFacing}
+          onCancel={() => setCameraFacing(null)} onUsePhoto={savePhoto} />}
+      </Modal>
       <TouchableOpacity onPress={choosePhoto} disabled={uploading}
         style={styles.photoButton} accessibilityRole="button"
         accessibilityLabel={path ? 'Change profile photo' : 'Add profile photo'}
