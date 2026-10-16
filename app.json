@@ -14,12 +14,7 @@
       }
     },
     "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
-      },
+      "icon": "./assets/careercompass_logo.png",
       "package": "com.johncol26.CareerCompass"
     },
     "web": {
