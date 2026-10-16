@@ -89,18 +89,32 @@ async function loadOrCreateProfile(authUser) {
   const { data: existing, error } = await supabase.from('profiles')
     .select('*').eq('id', authUser.id).maybeSingle();
   if (error) throw profileSaveError(error);
-  if (existing) return existing;
-
   const pending = authUser.user_metadata?.career_compass_profile;
-  if (!pending || !['username', 'first_name', 'last_name', 'student_id', 'program']
-    .every(key => typeof pending[key] === 'string' && pending[key].trim())) {
+  const requiredFields = ['username', 'first_name', 'last_name', 'student_id', 'program'];
+  const hasText = value => typeof value === 'string' && value.trim().length > 0;
+  // An Auth trigger can create a placeholder row before the email is confirmed.
+  // Repair it from registration metadata instead of treating its existence as completion.
+  // Once required fields are complete, later edits (including cleared optional fields) win.
+  if (existing && requiredFields.every(key => hasText(existing[key]))) return existing;
+  if (!pending || typeof pending !== 'object') {
+    if (existing) return existing;
     throw new Error('Your account exists but has no profile details. Ask the administrator to restore your profile. Do not register the same email again.');
   }
   // Metadata is user-editable: allow only profile fields, and take ID from Auth.
   const fields = ['username', 'first_name', 'middle_name', 'last_name', 'student_id',
     'program', 'department', 'position', 'career_target', 'interests', 'technologies'];
-  const profile = Object.fromEntries(fields.filter(key => pending[key] !== undefined)
-    .map(key => [key, pending[key]]));
+  const profile = Object.fromEntries(fields.filter(key => {
+    const current = existing?.[key];
+    const candidate = pending[key];
+    return ['interests', 'technologies'].includes(key)
+      ? (!current || (Array.isArray(current) && current.length === 0))
+        && Array.isArray(candidate) && candidate.length > 0 && candidate.every(item => typeof item === 'string')
+      : !hasText(current) && hasText(candidate);
+  }).map(key => [key, pending[key]]));
+  if (!existing && !requiredFields.every(key => hasText(profile[key]))) {
+    throw new Error('Your account exists but has no profile details. Ask the administrator to restore your profile. Do not register the same email again.');
+  }
+  if (existing && Object.keys(profile).length === 0) return existing;
   const { data: saved, error: saveError } = await supabase.from('profiles')
     .upsert({ ...profile, id: authUser.id }, { onConflict: 'id' }).select().single();
   if (saveError) throw profileSaveError(saveError);
