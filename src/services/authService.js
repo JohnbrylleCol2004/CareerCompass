@@ -122,7 +122,8 @@ async function loadOrCreateProfile(authUser) {
 }
 
 // GET CURRENT USER
-export async function getCurrentUser() {
+export async function getCurrentUser({ offline = false } = {}) {
+  if (offline) return getCachedProfile();
   const { data } = await supabase.auth.getSession();
 
   if (!data.session) {
@@ -133,7 +134,10 @@ export async function getCurrentUser() {
   let profile;
   try {
     profile = await loadOrCreateProfile(data.session.user);
-  } catch {
+  } catch (error) {
+    if (/network|fetch|connection|timeout/i.test(error?.message || '')) {
+      return getCachedProfile(data.session.user.id);
+    }
     return null;
   }
 
@@ -143,6 +147,17 @@ export async function getCurrentUser() {
   );
 
   return profile;
+}
+
+async function getCachedProfile(userId) {
+  try {
+    const raw = await AsyncStorage.getItem(SESSION_KEY);
+    const profile = raw ? JSON.parse(raw) : null;
+    return profile && typeof profile.id === 'string' && (!userId || profile.id === userId)
+      ? profile : null;
+  } catch {
+    return null;
+  }
 }
 
 // UPDATE PROFILE
@@ -179,13 +194,13 @@ export async function updateProfile(profileData) {
 
 // LOGOUT
 export async function logout() {
-  const { error } = await supabase.auth.signOut();
-
-  if (error) {
-    throw new Error(error.message);
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw new Error(error.message);
+  } finally {
+    // Do not restore a signed-out user's cached profile after a connection failure.
+    await AsyncStorage.removeItem(SESSION_KEY);
   }
-
-  await AsyncStorage.removeItem(SESSION_KEY);
 }
 
 // CLEAR LOCAL SESSION

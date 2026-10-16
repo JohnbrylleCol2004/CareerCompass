@@ -18,6 +18,7 @@ import PrimaryButton from '../../components/PrimaryButton';
 import PasswordInput from '../../components/PasswordInput';
 import { useAuth } from '../../context/AuthContext';
 import { colors } from '../../theme/colors';
+import { useNetwork } from '../../context/NetworkContext';
 
 const careerOptions = [
   'Web Development',
@@ -41,6 +42,7 @@ const technologyOptions = [
 
 export default function RegisterScreen({ navigation }) {
   const { register } = useAuth();
+  const { requireConnection } = useNetwork();
   const insets = useSafeAreaInsets();
   const scrollRef = useRef(null);
   const fieldPositions = useRef({});
@@ -102,6 +104,7 @@ export default function RegisterScreen({ navigation }) {
   }
 
   async function handleRegister() {
+    if (!requireConnection()) return;
     const cleanFullName = [firstName.trim(), middleName.trim(), lastName.trim()].filter(Boolean).join(' ');
     const cleanEmail = email.trim().toLowerCase();
     const cleanStudentId = studentId.trim();

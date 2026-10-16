@@ -6,12 +6,12 @@ const vm = require('node:vm');
 const form = { email: 'student@example.com', password: 'example-password', username: 'student',
   firstName: 'Test', lastName: 'Student', studentId: '123', program: 'BSIT' };
 const metadata = { username: 'student', first_name: 'Test', last_name: 'Student', student_id: '123', program: 'BSIT' };
-function setup({ session = null, existing = null, pending = metadata, saveError = null } = {}) {
+function setup({ session = null, existing = null, pending = metadata, saveError = null, cached = null, readError = null } = {}) {
   const calls = [];
   const user = { id: 'auth-user', user_metadata: { career_compass_profile: pending } };
   const query = {
     select() { return this; }, eq() { return this; },
-    maybeSingle: async () => ({ data: existing, error: null }),
+    maybeSingle: async () => ({ data: existing, error: readError }),
     upsert(profile) { calls.push(['save', profile]); return this; },
     single: async () => ({ data: { ...existing, ...calls.find(item => item[0] === 'save')?.[1] }, error: saveError }),
   };
@@ -19,13 +19,15 @@ function setup({ session = null, existing = null, pending = metadata, saveError 
     auth: {
       signUp: async input => { calls.push(['signup', input]); return { data: { user, session }, error: null }; },
       signInWithPassword: async () => ({ data: { user, session: {} }, error: null }),
-      getSession: async () => ({ data: { session: { user } } }),
+      getSession: async () => { calls.push(['session']); return { data: { session: { user } } }; },
     },
     from: () => { calls.push(['database']); return query; },
   };
   const source = fs.readFileSync('src/services/authService.js', 'utf8')
     .replace(/^import .*;\r?\n/gm, '').replace(/export async function/g, 'async function');
-  const context = vm.createContext({ supabase, AsyncStorage: { setItem: async () => {} } });
+  const context = vm.createContext({ supabase, AsyncStorage: {
+    setItem: async () => {}, getItem: async () => cached,
+  } });
   vm.runInContext(`${source}\nthis.api = { register, login, getCurrentUser };`, context);
   return { api: context.api, calls };
 }
@@ -89,4 +91,30 @@ test('completed profiles keep optional fields intentionally cleared after signup
   assert.equal(profile.career_target, '');
   assert.equal(profile.interests.length, 0);
   assert.ok(!calls.some(item => item[0] === 'save'));
+});
+
+test('offline startup loads cached profile without contacting Auth or the database', async () => {
+  const { api, calls } = setup({ cached: JSON.stringify({ ...metadata, id: 'auth-user' }) });
+  assert.equal((await api.getCurrentUser({ offline: true })).program, 'BSIT');
+  assert.equal(calls.length, 0);
+});
+
+test('offline startup handles missing and corrupt cache safely', async () => {
+  for (const cached of [null, 'not JSON', JSON.stringify({ program: 'BSIT' })]) {
+    const { api } = setup({ cached });
+    assert.equal(await api.getCurrentUser({ offline: true }), null);
+  }
+});
+
+test('network failure falls back only to the signed-in user’s cached profile', async () => {
+  for (const id of ['auth-user', 'another-user']) {
+    const { api } = setup({ cached: JSON.stringify({ ...metadata, id }), readError: { message: 'Network request failed' } });
+    const profile = await api.getCurrentUser();
+    assert.equal(profile?.id || null, id === 'auth-user' ? 'auth-user' : null);
+  }
+});
+
+test('permission errors are not presented as successful profile loads', async () => {
+  const { api } = setup({ cached: JSON.stringify({ ...metadata, id: 'auth-user' }), readError: { code: '42501', message: 'permission denied' } });
+  assert.equal(await api.getCurrentUser(), null);
 });

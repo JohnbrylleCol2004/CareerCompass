@@ -13,14 +13,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import PrimaryButton from '../../components/PrimaryButton';
 import PasswordInput from '../../components/PasswordInput';
 import { colors } from '../../theme/colors';
+import { useNetwork } from '../../context/NetworkContext';
 
 export default function LoginScreen({ navigation }) {
   const { login } = useAuth();
+  const { requireConnection } = useNetwork();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   async function handleLogin() {
+  if (!requireConnection()) return;
   if (!email || !password) {
     Alert.alert(
       'Missing Information',

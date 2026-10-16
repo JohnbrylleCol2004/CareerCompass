@@ -9,9 +9,11 @@ import { useAuth } from '../context/AuthContext';
 import { getProfilePhotoUrl, uploadProfilePhoto } from '../services/profilePhotoService';
 import { colors } from '../theme/colors';
 import ProfileCamera from './ProfileCamera';
+import { useNetwork } from '../context/NetworkContext';
 
 export default function ProfilePhoto() {
   const { user, updateProfile } = useAuth();
+  const { offline, requireConnection } = useNetwork();
   const [iconsLoaded] = useFonts(Ionicons.font);
   const [photoUrl, setPhotoUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -25,6 +27,7 @@ export default function ProfilePhoto() {
   useFocusEffect(useCallback(() => {
     let active = true;
     async function loadPhoto() {
+      if (offline) return;
       try {
         const url = await getProfilePhotoUrl(path);
         if (active) {
@@ -41,9 +44,10 @@ export default function ProfilePhoto() {
     loadPhoto();
     const timer = setInterval(loadPhoto, 50 * 60 * 1000);
     return () => { active = false; clearInterval(timer); };
-  }, [path]));
+  }, [path, offline]));
 
   function choosePhoto() {
+    if (!requireConnection()) return;
     if (busy.current) return;
     Alert.alert('Profile photo', 'Choose how to add your photo.', [
       { text: 'Cancel', style: 'cancel' },
@@ -87,9 +91,10 @@ export default function ProfilePhoto() {
   }
 
   async function savePhoto(capturedPhoto) {
+    setCameraFacing(null);
+    if (!requireConnection()) return;
     if (busy.current) return;
     busy.current = true;
-    setCameraFacing(null);
     setUploading(true);
     try {
       const options = {

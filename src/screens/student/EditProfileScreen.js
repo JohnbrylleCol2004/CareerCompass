@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import PrimaryButton from '../../components/PrimaryButton';
 import { useAuth } from '../../context/AuthContext';
 import { colors } from '../../theme/colors';
+import { useNetwork } from '../../context/NetworkContext';
 
 const fields = [
   ['username', 'Username'],
@@ -22,6 +23,7 @@ const fields = [
 
 export default function EditProfileScreen({ navigation }) {
   const { user, updateProfile } = useAuth();
+  const { requireConnection } = useNetwork();
   const headerHeight = useHeaderHeight();
   const scrollRef = useRef(null);
   const fieldPositions = useRef({});
@@ -40,6 +42,7 @@ export default function EditProfileScreen({ navigation }) {
   const [saving, setSaving] = useState(false);
 
   async function saveProfile() {
+    if (!requireConnection()) return;
     if (!values.first_name.trim() || !values.last_name.trim() || !values.username.trim()) {
       Alert.alert('Missing Information', 'Please enter your first name, last name, and username.');
       return;

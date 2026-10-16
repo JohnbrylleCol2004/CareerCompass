@@ -10,11 +10,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import PrimaryButton from '../../components/PrimaryButton';
 import { colors } from '../../theme/colors';
+import { useNetwork } from '../../context/NetworkContext';
 
 export default function ForgotPasswordScreen({ navigation }) {
+  const { requireConnection } = useNetwork();
   const [email, setEmail] = useState('');
 
   function handleReset() {
+    if (!requireConnection()) return;
     if (!email) {
       Alert.alert('Missing Email', 'Please enter your email address.');
       return;

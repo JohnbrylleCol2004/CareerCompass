@@ -7,11 +7,14 @@ import {
 
 import { useAuth } from '../context/AuthContext';
 import { colors } from '../theme/colors';
+import { useNetwork } from '../context/NetworkContext';
 
 export default function LogoutButton() {
   const { logout } = useAuth();
+  const { requireConnection } = useNetwork();
 
   async function handleLogout() {
+    if (!requireConnection()) return;
     console.log('LOGOUT BUTTON CLICKED');
 
     try {
