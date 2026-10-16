@@ -54,6 +54,7 @@ export default function LoginScreen({ navigation }) {
         <TextInput
           style={styles.input}
           placeholder="Enter email"
+          placeholderTextColor={colors.gray}
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
@@ -132,6 +133,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   input: {
+    color: colors.dark,
     backgroundColor: colors.white,
     borderColor: colors.border,
     borderWidth: 1,

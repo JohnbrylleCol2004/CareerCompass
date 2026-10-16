@@ -10,6 +10,9 @@ export default function PasswordInput({ style, accessibilityLabel = 'Password', 
     <View style={styles.container}>
       <TextInput
         {...props}
+        placeholderTextColor={props.placeholderTextColor || colors.gray}
+        selectionColor={colors.primaryDark}
+        cursorColor={colors.primaryDark}
         ref={input}
         style={[style, styles.input]}
         accessibilityLabel={accessibilityLabel}
@@ -40,7 +43,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', backgroundColor: colors.white,
     borderWidth: 1, borderColor: colors.border, borderRadius: 9,
   },
-  input: { flex: 1, minWidth: 0, borderWidth: 0, backgroundColor: 'transparent' },
+  input: {
+    flex: 1, minWidth: 0, minHeight: 50, borderWidth: 0,
+    backgroundColor: 'transparent', color: colors.dark,
+    textAlignVertical: 'center',
+  },
   toggle: { minWidth: 64, minHeight: 48, paddingHorizontal: 12, justifyContent: 'center', alignItems: 'center' },
   toggleText: { color: colors.primaryDark, fontSize: 14, fontWeight: 'bold' },
 });
