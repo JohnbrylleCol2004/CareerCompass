@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import PrimaryButton from '../../components/PrimaryButton';
+import PasswordInput from '../../components/PasswordInput';
 import { colors } from '../../theme/colors';
 
 export default function LoginScreen({ navigation }) {
@@ -60,12 +61,11 @@ export default function LoginScreen({ navigation }) {
         />
 
         <Text style={styles.label}>Password</Text>
-        <TextInput
+        <PasswordInput
           style={styles.input}
           placeholder="Enter password"
           value={password}
           onChangeText={setPassword}
-          secureTextEntry
         />
 
         <TouchableOpacity

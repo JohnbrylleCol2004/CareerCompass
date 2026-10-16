@@ -15,6 +15,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import PrimaryButton from '../../components/PrimaryButton';
+import PasswordInput from '../../components/PasswordInput';
 import { useAuth } from '../../context/AuthContext';
 import { colors } from '../../theme/colors';
 
@@ -323,7 +324,7 @@ export default function RegisterScreen({ navigation }) {
               onLayout={event => { fieldPositions.current.password = event.nativeEvent.layout.y; }}>
               <Text style={styles.label}>Password *</Text>
 
-              <TextInput
+              <PasswordInput
                 style={styles.input}
                 placeholder="Minimum of 6 characters"
                 placeholderTextColor={colors.gray}
@@ -332,7 +333,6 @@ export default function RegisterScreen({ navigation }) {
                 onFocus={() => focusField('password')}
                 onBlur={() => { focusedField.current = null; }}
                 editable={!loading}
-                secureTextEntry
                 autoCapitalize="none"
               />
             </View>
@@ -343,8 +343,9 @@ export default function RegisterScreen({ navigation }) {
                 Confirm Password *
               </Text>
 
-              <TextInput
+              <PasswordInput
                 style={styles.input}
+                accessibilityLabel="Confirm password"
                 placeholder="Re-enter your password"
                 placeholderTextColor={colors.gray}
                 value={confirmPassword}
@@ -352,7 +353,6 @@ export default function RegisterScreen({ navigation }) {
                 onFocus={() => focusField('confirmPassword')}
                 onBlur={() => { focusedField.current = null; }}
                 editable={!loading}
-                secureTextEntry
                 autoCapitalize="none"
               />
             </View>
