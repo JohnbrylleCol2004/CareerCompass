@@ -44,7 +44,7 @@ export function AuthProvider({ children }) {
 
   async function register(userData) {
     const registeredUser = await registerUser(userData);
-    setUser(registeredUser);
+    if (!registeredUser.requiresEmailConfirmation) setUser(registeredUser);
     return registeredUser;
   }
 

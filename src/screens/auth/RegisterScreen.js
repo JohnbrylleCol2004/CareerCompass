@@ -150,7 +150,7 @@ export default function RegisterScreen({ navigation }) {
     try {
       setLoading(true);
 
-      await register({
+      const result = await register({
         firstName,
         middleName,
         lastName,
@@ -165,6 +165,15 @@ export default function RegisterScreen({ navigation }) {
         technologies,
         password,
       });
+
+      if (result.requiresEmailConfirmation) {
+        setPassword('');
+        setConfirmPassword('');
+        Alert.alert('Check your email',
+          'If this email can be registered, a confirmation link has been sent. Confirm your email, then log in to finish setting up your profile.',
+          [{ text: 'Go to Login', onPress: () => navigation.navigate('Login') }]);
+        return;
+      }
 
       Alert.alert(
         'Registration Successful',
