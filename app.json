@@ -4,7 +4,7 @@
     "slug": "CareerCompass",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/careercompass_logo.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
