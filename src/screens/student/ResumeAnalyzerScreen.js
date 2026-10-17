@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   ScrollView,
   Text,
-  Alert,
   StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,25 +10,31 @@ import ResumePdfInput from '../../components/ResumePdfInput';
 import PrimaryButton from '../../components/PrimaryButton';
 import SummaryCard from '../../components/SummaryCard';
 import { colors } from '../../theme/colors';
+import { useNetwork } from '../../context/NetworkContext';
+import { analyzeResumePdf } from '../../services/careerAiService';
+import AiFeedbackCard from '../../components/AiFeedbackCard';
 
 export default function ResumeAnalyzerScreen() {
   const [resume, setResume] = useState(null);
-  const [analyzed, setAnalyzed] = useState(false);
+  const [analysis, setAnalysis] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const busy = useRef(false);
+  const { requireConnection } = useNetwork();
 
-  function analyzeResume() {
-    if (!resume) {
-      Alert.alert(
-        'Missing Resume',
-        'Please add a PDF resume first.'
-      );
-      return;
-    }
-
-    setAnalyzed(true);
+  async function analyzeResume() {
+    if (!resume || busy.current || !requireConnection()) return;
+    busy.current = true;
+    setLoading(true);
+    setError('');
+    setAnalysis(null);
+    try { setAnalysis(await analyzeResumePdf(resume)); }
+    catch (err) { setError(err?.message || 'Unable to analyze this PDF. Please try again.'); }
+    finally { busy.current = false; setLoading(false); }
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['left', 'right', 'bottom']}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.container}
@@ -40,37 +45,41 @@ export default function ResumeAnalyzerScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <Text style={styles.title}>
-          Resume Builder and Analyzer
+          Resume Analyzer
         </Text>
 
-        <ResumePdfInput onSelect={file => { setResume(file); setAnalyzed(false); }} />
+        <ResumePdfInput disabled={loading} onSelect={file => { setResume(file); setAnalysis(null); setError(''); }} />
         {resume && (
           <>
             <Text style={styles.fileName}>{resume.name}</Text>
             <Text style={styles.fileDetails}>{Math.ceil(resume.size / 1024)} KB - PDF</Text>
-            <PrimaryButton title="Remove PDF" onPress={() => { setResume(null); setAnalyzed(false); }} />
+            <PrimaryButton title="Remove PDF" disabled={loading} onPress={() => { setResume(null); setAnalysis(null); setError(''); }} />
           </>
         )}
-        <Text style={styles.fileDetails}>Analysis currently shows a demo result, not an evaluation of your PDF.</Text>
+        <Text style={styles.fileDetails}>Tapping Analyze sends your PDF and career profile context to Google Gemini for review. For free-tier testing, use a sample resume: inputs may be used to improve Google products. Your PDF and analysis are not saved to our database.</Text>
 
         <PrimaryButton
           title="Analyze Resume"
-          disabled={!resume}
+          disabled={!resume || loading}
+          loading={loading}
           onPress={analyzeResume}
         />
 
-        {analyzed && (
+        {loading && <Text style={styles.fileDetails}>Reading your PDF and preparing feedback. This may take a minute.</Text>}
+        {!!error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}
+        {analysis && (
           <>
-            <SummaryCard
-              title="Demo Resume Score"
-              value="78%"
-              description="Your resume has a good foundation."
-            />
-
-            <SummaryCard
-              title="Recommendations"
-              description="Add more projects, technical skills, and measurable achievements."
-            />
+            <SummaryCard title={analysis.isResume ? 'Resume quality score' : 'Document needs attention'}
+              value={analysis.isResume ? `${analysis.score}/100` : undefined} description={analysis.summary} />
+            {analysis.isResume && <>
+              <AiFeedbackCard title="Strengths" items={analysis.strengths} />
+              <AiFeedbackCard title="Recommended improvements" items={analysis.improvements} />
+              <AiFeedbackCard title="Missing sections" items={analysis.missingSections} />
+              <AiFeedbackCard title="Skills found in your PDF" items={analysis.skills} />
+              <AiFeedbackCard title="Roles to explore" items={analysis.suggestedRoles} />
+              <SummaryCard title="Example improved bullet" description={analysis.exampleBullet} />
+            </>}
+            <Text style={styles.fileDetails}>AI feedback can be inaccurate. This score is practice guidance, not an ATS score or a hiring prediction. Review suggestions before using them.</Text>
           </>
         )}
       </ScrollView>
@@ -104,4 +113,5 @@ const styles = StyleSheet.create({
 
   fileName: { color: colors.dark, fontSize: 16, fontWeight: '600', marginTop: 16 },
   fileDetails: { color: colors.gray, fontSize: 13, marginVertical: 8 },
+  error: { color: colors.danger, fontSize: 15, lineHeight: 22, marginVertical: 12 },
 });

@@ -7,13 +7,13 @@ import PrimaryButton from './PrimaryButton';
 import { validatePdfHeader, validatePdfMetadata } from '../utils/resumePdf';
 import { colors } from '../theme/colors';
 
-export default function ResumePdfInput({ onSelect }) {
+export default function ResumePdfInput({ onSelect, disabled = false }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const picking = useRef(false);
 
   async function pickFile() {
-    if (picking.current) return;
+    if (picking.current || disabled) return;
     picking.current = true;
     setBusy(true);
     setError('');
@@ -59,7 +59,7 @@ export default function ResumePdfInput({ onSelect }) {
   return (
     <View>
       <Text style={{ color: colors.gray }}>Choose a PDF resume from your device. Maximum 10 MB.</Text>
-      <PrimaryButton title="Add PDF" onPress={pickFile} loading={busy} disabled={busy} />
+      <PrimaryButton title="Add PDF" onPress={pickFile} loading={busy} disabled={busy || disabled} />
       {!!error && <Text accessibilityRole="alert" style={{ color: colors.danger }}>{error}</Text>}
     </View>
   );

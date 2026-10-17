@@ -1,0 +1,5 @@
+project_id = "careercompass"
+
+[functions.career-ai]
+# The handler verifies the bearer token with Supabase Auth before processing requests.
+verify_jwt = false
