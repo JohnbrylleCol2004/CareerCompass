@@ -42,7 +42,8 @@
           "cameraPermission": "Allow CareerCompass to take your profile photo.",
           "microphonePermission": false
         }
-      ]
+      ],
+      "expo-status-bar"
     ]
   }
 }
