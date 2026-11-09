@@ -10,7 +10,7 @@ import { useAuth } from '../../context/AuthContext';
 import AppHeader from '../../components/AppHeader';
 import SummaryCard from '../../components/SummaryCard';
 import { colors } from '../../theme/colors';
-import { careers, skills } from '../../data/mockData';
+import { careers, electives, skills } from '../../data/mockData';
 
 export default function DashboardScreen({ navigation }) {
   const { user } = useAuth();
@@ -36,17 +36,24 @@ export default function DashboardScreen({ navigation }) {
         </Text>
 
         <SummaryCard
-          title="Skill Gap Summary"
+          title="Sample Skill Gap"
           value={`${skills.length} Skills`}
-          description="Review your current skills and improvement areas."
+          description="Explore example skills and improvement areas."
           onPress={() => navigation.navigate('Skill Gap')}
         />
 
         <SummaryCard
-          title="Top Career Match"
-          value={`${careers[0].matchScore}%`}
-          description={careers[0].name}
+          title="BSIT Career Paths"
+          value={`${careers.length} Roles`}
+          description="Explore primary and secondary job roles for BSIT."
           onPress={() => navigation.navigate('Careers')}
+        />
+
+        <SummaryCard
+          title="BSIT Recommended Electives"
+          value={`${electives.length} Courses`}
+          description="View the courses in the BSIT sample curriculum."
+          onPress={() => navigation.navigate('ElectiveRecommendations')}
         />
 
         <SummaryCard

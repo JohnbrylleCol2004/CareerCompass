@@ -22,17 +22,19 @@ export default function CareerRecommendationScreen() {
         overScrollMode="never"
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.title}>
-          Career Recommendations
-        </Text>
+        <Text style={styles.title}>BSIT Career Paths</Text>
+        <Text style={styles.note}>Job roles listed in the BSIT reference you shared. These are paths to explore, not personal match scores.</Text>
 
-        {careers.map((career) => (
+        <Text style={styles.sectionTitle}>Primary job roles</Text>
+        {careers.filter((career) => career.tier === 'primary').map((career) => (
           <SummaryCard
             key={career.id}
             title={career.name}
-            value={`${career.matchScore}% Match`}
-            description={career.description}
           />
+        ))}
+        <Text style={styles.sectionTitle}>Secondary job roles</Text>
+        {careers.filter((career) => career.tier === 'secondary').map((career) => (
+          <SummaryCard key={career.id} title={career.name} />
         ))}
       </ScrollView>
     </SafeAreaView>
@@ -61,4 +63,6 @@ const styles = StyleSheet.create({
     color: colors.dark,
     marginBottom: 12,
   },
+  note: { color: colors.gray, fontSize: 14, lineHeight: 21, marginBottom: 20 },
+  sectionTitle: { color: colors.dark, fontSize: 18, fontWeight: 'bold', marginTop: 12, marginBottom: 4 },
 });

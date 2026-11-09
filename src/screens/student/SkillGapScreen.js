@@ -26,8 +26,9 @@ export default function SkillGapScreen() {
         <AppHeader title="Skill Gap Analysis" />
 
         <Text style={styles.title}>
-          Skill Gap Indicators
+          Example Skill Gap Indicators
         </Text>
+        <Text style={styles.note}>These sample scores illustrate skill gaps; they do not assess your own skills.</Text>
 
         {skills.map((skill) => (
           <ProgressBar
@@ -65,4 +66,5 @@ const styles = StyleSheet.create({
     color: colors.dark,
     marginVertical: 15,
   },
+  note: { color: colors.gray, fontSize: 14, lineHeight: 21, marginBottom: 12 },
 });

@@ -256,10 +256,10 @@ export default function RegisterScreen({ navigation }) {
             ['Username *', username, setUsername, 'Choose a username'],
             ['Email Address *', email, setEmail, 'example@email.com'],
             ['Student ID *', studentId, setStudentId, 'Example: 2024-00123'],
-            ['Program / Course *', program, setProgram, 'Example: BS Information Technology'],
+            ['Program / Course *', program, setProgram, 'Example: BSIT'],
             ['Department', department, setDepartment, 'Enter department'],
             ['Position', position, setPosition, 'Enter position (optional)'],
-            ['Career Target', careerTarget, setCareerTarget, 'Example: Web Developer'],
+            ['Career Target', careerTarget, setCareerTarget, 'Example: Web and Applications Developer'],
           ].map(([label, value, onChangeText, placeholder]) => (
             <View key={label} onLayout={event => { fieldPositions.current[label] = event.nativeEvent.layout.y; }}>
               <Text style={styles.label}>{label}</Text>

@@ -22,15 +22,14 @@ export default function ElectiveRecommendationScreen() {
         overScrollMode="never"
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.title}>
-          Recommended Electives
-        </Text>
+        <Text style={styles.title}>BSIT Recommended Electives</Text>
+        <Text style={styles.note}>These six courses appear under “Recommended Electives” in the BSIT sample curriculum you shared. Check your current school catalog before enrolling.</Text>
 
         {electives.map((elective) => (
           <SummaryCard
             key={elective.id}
             title={elective.name}
-            description={elective.description}
+            description={`Course code ${elective.code}`}
           />
         ))}
       </ScrollView>
@@ -60,4 +59,5 @@ const styles = StyleSheet.create({
     color: colors.dark,
     marginBottom: 12,
   },
+  note: { color: colors.gray, fontSize: 14, lineHeight: 21, marginBottom: 12 },
 });

@@ -53,7 +53,7 @@ export async function getElectiveRecommendations() {
   return electives;
 }
 
-export async function getInterviewQuestions(career = 'Web Developer') {
+export async function getInterviewQuestions(career = 'Web and Applications Developer') {
   await delay(300);
 
   return interviewQuestions.filter(
