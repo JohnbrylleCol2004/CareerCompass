@@ -11,8 +11,10 @@ import {
   Platform,
   TouchableOpacity,
   useWindowDimensions,
+  Image,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 
 import PrimaryButton from '../../components/PrimaryButton';
 import PasswordInput from '../../components/PasswordInput';
@@ -105,7 +107,6 @@ export default function RegisterScreen({ navigation }) {
 
   async function handleRegister() {
     if (!requireConnection()) return;
-    const cleanFullName = [firstName.trim(), middleName.trim(), lastName.trim()].filter(Boolean).join(' ');
     const cleanEmail = email.trim().toLowerCase();
     const cleanStudentId = studentId.trim();
     const cleanProgram = program.trim();
@@ -179,10 +180,6 @@ export default function RegisterScreen({ navigation }) {
         return;
       }
 
-      Alert.alert(
-        'Registration Successful',
-        `Welcome, ${cleanFullName}!`
-      );
     } catch (error) {
       Alert.alert(
         'Registration Failed',
@@ -196,6 +193,9 @@ export default function RegisterScreen({ navigation }) {
   function CheckOption({ label, selected, onPress }) {
     return (
       <TouchableOpacity
+        accessibilityRole="checkbox"
+        accessibilityLabel={label}
+        accessibilityState={{ checked: selected, disabled: loading }}
         style={[
           styles.checkOption,
           useSingleColumn && styles.fullWidthOption,
@@ -210,7 +210,7 @@ export default function RegisterScreen({ navigation }) {
             selected && styles.checkboxSelected,
           ]}
         >
-          {selected && <Text style={styles.checkMark}>✓</Text>}
+          {selected && <Ionicons name="checkmark" size={15} color={colors.white} />}
         </View>
 
         <Text style={styles.optionText}>{label}</Text>
@@ -238,10 +238,10 @@ export default function RegisterScreen({ navigation }) {
           keyboardDismissMode="on-drag"
         >
           <View style={styles.header}>
-            <Text style={styles.headerIcon}>♙</Text>
+            <Image source={require('../../../assets/careercompass_logo.png')} style={styles.headerIcon} accessibilityLabel="CareerCompass logo" />
 
             <Text style={styles.title}>
-              Register Form
+              Create account
             </Text>
 
             <Text style={styles.subtitle}>
@@ -362,13 +362,17 @@ export default function RegisterScreen({ navigation }) {
           </View>
 
           <PrimaryButton
-            title={loading ? 'Signing Up...' : 'Sign Up'}
-            onPress={loading ? undefined : handleRegister}
+            title="Sign Up"
+            loading={loading}
+            onPress={handleRegister}
           />
 
           <TouchableOpacity
             onPress={() => navigation.navigate('Login')}
             disabled={loading}
+            accessibilityRole="button"
+            accessibilityLabel="Log in to an existing account"
+            style={styles.loginButton}
           >
             <Text style={styles.loginText}>
               Already have an account?{' '}
@@ -384,7 +388,7 @@ export default function RegisterScreen({ navigation }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F3FFFC',
+    backgroundColor: colors.background,
   },
 
   keyboardView: {
@@ -406,18 +410,13 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     marginBottom: 18,
     borderBottomWidth: 1,
-    borderBottomColor: '#BFEDE3',
+    borderBottomColor: colors.border,
   },
 
   headerIcon: {
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: '#36A88F',
-    color: colors.white,
-    textAlign: 'center',
-    textAlignVertical: 'center',
-    fontSize: 28,
     marginBottom: 10,
   },
 
@@ -482,7 +481,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: '#36A88F',
+    borderColor: colors.primary,
     borderRadius: 9,
     paddingHorizontal: 12,
     paddingVertical: 12,
@@ -518,9 +517,9 @@ const styles = StyleSheet.create({
     marginTop: 18,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#BFEDE3',
+    borderColor: colors.border,
     borderRadius: 12,
-    backgroundColor: '#F8FFFD',
+    backgroundColor: colors.white,
   },
 
   sectionTitle: {
@@ -531,7 +530,7 @@ const styles = StyleSheet.create({
 
   sectionSubtitle: {
     color: colors.gray,
-    fontSize: 11,
+    fontSize: 14,
     marginTop: 3,
     marginBottom: 12,
   },
@@ -545,7 +544,7 @@ const styles = StyleSheet.create({
 
   checkOption: {
     width: '48%',
-    minHeight: 42,
+    minHeight: 48,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
@@ -561,14 +560,14 @@ const styles = StyleSheet.create({
   },
 
   selectedOption: {
-    borderColor: '#36A88F',
-    backgroundColor: '#E9FAF5',
+    borderColor: colors.primary,
+    backgroundColor: colors.secondary,
   },
 
   checkbox: {
     flexShrink: 0,
-    width: 15,
-    height: 15,
+    width: 18,
+    height: 18,
     borderWidth: 1,
     borderColor: colors.gray,
     borderRadius: 3,
@@ -578,31 +577,27 @@ const styles = StyleSheet.create({
   },
 
   checkboxSelected: {
-    backgroundColor: '#36A88F',
-    borderColor: '#36A88F',
-  },
-
-  checkMark: {
-    color: colors.white,
-    fontSize: 11,
-    fontWeight: 'bold',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
 
   optionText: {
     flex: 1,
     color: colors.dark,
-    fontSize: 11,
+    fontSize: 14,
   },
+
+  loginButton: { minHeight: 48, justifyContent: 'center' },
 
   loginText: {
     color: colors.dark,
     textAlign: 'center',
     marginTop: 18,
-    fontSize: 12,
+    fontSize: 14,
   },
 
   loginLink: {
-    color: '#168C78',
+    color: colors.primaryDark,
     fontWeight: 'bold',
   },
 });

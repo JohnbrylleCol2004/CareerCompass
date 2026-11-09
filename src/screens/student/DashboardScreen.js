@@ -1,22 +1,26 @@
 import React from 'react';
 import {
+  Image,
   ScrollView,
   Text,
   StyleSheet,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '../../context/AuthContext';
-import AppHeader from '../../components/AppHeader';
+import { useAssessment } from '../../context/AssessmentContext';
+import StudentMenuHeader from '../../components/StudentMenuHeader';
 import SummaryCard from '../../components/SummaryCard';
 import { colors } from '../../theme/colors';
-import { careers, electives, skills } from '../../data/mockData';
 
 export default function DashboardScreen({ navigation }) {
   const { user } = useAuth();
+  const { result: assessment } = useAssessment();
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right', 'bottom']}>
+      <StudentMenuHeader title="Student Dashboard" current="Dashboard" navigation={navigation} />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.container}
@@ -26,39 +30,34 @@ export default function DashboardScreen({ navigation }) {
         overScrollMode="never"
         keyboardShouldPersistTaps="handled"
       >
-        <AppHeader
-          title="Student Dashboard"
-          onProfilePress={() => navigation.navigate('Profile')}
-        />
-
-        <Text style={styles.heading}>
-          Welcome, {user?.first_name || user?.username || 'Student'}!
-        </Text>
-
-        <SummaryCard
-          title="Sample Skill Gap"
-          value={`${skills.length} Skills`}
-          description="Explore example skills and improvement areas."
-          onPress={() => navigation.navigate('Skill Gap')}
-        />
+        <View style={styles.welcomeRow}>
+          <Image source={require('../../../assets/careercompass_logo.png')} style={styles.logo} accessibilityLabel="CareerCompass logo" />
+          <Text accessibilityRole="header" style={styles.heading}>
+            Welcome, {user?.first_name || user?.username || 'Student'}!
+          </Text>
+        </View>
 
         <SummaryCard
           title="BSIT Career Paths"
-          value={`${careers.length} Roles`}
-          description="Explore primary and secondary job roles for BSIT."
+          description={assessment ? 'Explore paths suggested by your interview answers and the full BSIT role list.' : 'Explore BSIT roles. Complete Interview Coach for practice-based suggestions.'}
           onPress={() => navigation.navigate('Careers')}
         />
 
         <SummaryCard
           title="BSIT Recommended Electives"
-          value={`${electives.length} Courses`}
           description="View the courses in the BSIT sample curriculum."
           onPress={() => navigation.navigate('ElectiveRecommendations')}
         />
 
         <SummaryCard
+          title="Skill Gap"
+          description={assessment ? 'Review what your interview answers demonstrated and what needs more evidence.' : 'Answer all 20 Interview Coach questions to see practice-based skill findings.'}
+          onPress={() => navigation.navigate('Skill Gap')}
+        />
+
+        <SummaryCard
           title="Interview Coach"
-          description="Practice common career interview questions."
+          description="Practice 20 BSIT questions, then assess your answers for Skill Gap and Careers."
           onPress={() => navigation.navigate('InterviewCoach')}
         />
 
@@ -88,10 +87,21 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
 
+  welcomeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    margin: 16,
+  },
+  logo: {
+    width: 56,
+    height: 56,
+    borderRadius: 12,
+  },
   heading: {
+    flex: 1,
     fontSize: 24,
     fontWeight: 'bold',
     color: colors.dark,
-    margin: 16,
   },
 });

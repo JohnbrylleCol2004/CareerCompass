@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  TouchableOpacity,
+  Pressable,
   Text,
   StyleSheet,
   ActivityIndicator,
@@ -12,40 +12,58 @@ export default function PrimaryButton({
   onPress,
   loading = false,
   disabled = false,
+  variant = 'primary',
 }) {
+  const inactive = disabled || loading;
   return (
-    <TouchableOpacity
-      style={[
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      accessibilityState={{ disabled: inactive, busy: loading }}
+      style={({ pressed }) => [
         styles.button,
-        disabled && styles.disabledButton,
+        variant === 'secondary' && styles.secondaryButton,
+        pressed && !inactive && styles.pressedButton,
+        disabled && !loading && styles.disabledButton,
       ]}
       onPress={onPress}
-      disabled={disabled || loading}
+      disabled={inactive}
     >
       {loading ? (
-        <ActivityIndicator color={colors.white} />
+        <ActivityIndicator color={variant === 'secondary' ? colors.primaryDark : colors.white} />
       ) : (
-        <Text style={styles.text}>{title}</Text>
+        <Text style={[styles.text, variant === 'secondary' && styles.secondaryText, disabled && styles.disabledText]}>{title}</Text>
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
     backgroundColor: colors.primary,
-    paddingVertical: 13,
+    minHeight: 48,
+    justifyContent: 'center',
+    paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
     alignItems: 'center',
-    marginVertical: 8,
+    marginVertical: 6,
   },
+  secondaryButton: {
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.primaryDark,
+  },
+  pressedButton: { opacity: 0.82 },
   disabledButton: {
-    opacity: 0.5,
+    backgroundColor: colors.border,
+    borderColor: colors.border,
   },
   text: {
     color: colors.white,
     fontSize: 16,
     fontWeight: 'bold',
   },
+  secondaryText: { color: colors.primaryDark },
+  disabledText: { color: colors.gray },
 });

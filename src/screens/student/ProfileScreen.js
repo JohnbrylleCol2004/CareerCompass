@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import AppHeader from '../../components/AppHeader';
+import StudentMenuHeader from '../../components/StudentMenuHeader';
 import ProfilePhoto from '../../components/ProfilePhoto';
 import SummaryCard from '../../components/SummaryCard';
 import PrimaryButton from '../../components/PrimaryButton';
@@ -25,7 +25,8 @@ export default function ProfileScreen({ navigation }) {
     : user?.technologies || 'No technologies added';
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right', 'bottom']}>
+      <StudentMenuHeader title="Student Profile" current="Profile" navigation={navigation} />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.container}
@@ -35,16 +36,17 @@ export default function ProfileScreen({ navigation }) {
         overScrollMode="never"
         keyboardShouldPersistTaps="handled"
       >
-        <AppHeader title="Student Profile" />
         <ProfilePhoto />
 
         <SummaryCard
           title="Name"
+          variant="list"
           value={[user?.first_name, user?.middle_name, user?.last_name].filter(Boolean).join(' ') || 'Not provided'}
         />
 
         <SummaryCard
           title="Student ID"
+          variant="list"
           value={
             user?.student_id || 'Not provided'
           }
@@ -52,6 +54,7 @@ export default function ProfileScreen({ navigation }) {
 
         <SummaryCard
           title="Program / Course"
+          variant="list"
           value={
             user?.program || 'Not provided'
           }
@@ -59,6 +62,7 @@ export default function ProfileScreen({ navigation }) {
 
         <SummaryCard
           title="Career Target"
+          variant="list"
           value={
             user?.career_target || 'Not provided'
           }
@@ -66,17 +70,19 @@ export default function ProfileScreen({ navigation }) {
 
         <SummaryCard
           title="Interests"
+          variant="list"
           value={interests || 'No interests added'}
         />
 
         <SummaryCard
           title="Technologies"
+          variant="list"
           value={technologies || 'No technologies added'}
         />
 
-        <SummaryCard title="Username" value={user?.username || 'Not provided'} />
-        <SummaryCard title="Department" value={user?.department || 'Not provided'} />
-        <SummaryCard title="Position" value={user?.position || 'Not provided'} />
+        <SummaryCard title="Username" value={user?.username || 'Not provided'} variant="list" />
+        <SummaryCard title="Department" value={user?.department || 'Not provided'} variant="list" />
+        <SummaryCard title="Position" value={user?.position || 'Not provided'} variant="list" />
 
         <PrimaryButton
           title="Edit Profile"

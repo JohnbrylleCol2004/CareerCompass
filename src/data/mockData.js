@@ -134,6 +134,111 @@ export const interviewQuestions = [
     sampleAnswer:
       'Responsive web design allows websites to adjust properly to different screen sizes and devices.',
   },
+  {
+    id: 6,
+    career: 'Web and Applications Developer',
+    question: 'How would you make a web form easier to use with a keyboard and screen reader?',
+    sampleAnswer:
+      'I would use clear labels, logical focus order, visible focus states, and errors that explain how to correct each field.',
+  },
+  {
+    id: 7,
+    career: 'Web and Applications Developer',
+    question: 'What work belongs in the frontend, and what work belongs in the backend?',
+    sampleAnswer:
+      'The frontend presents and collects information, while the backend handles trusted operations such as data access and authorization.',
+  },
+  {
+    id: 8,
+    career: 'Web and Applications Developer',
+    question: 'How would you investigate a page that fails to load data from an API?',
+    sampleAnswer:
+      'I would check the request URL, network status, response code, authentication, and server logs, then reproduce the failure with a small request.',
+  },
+  {
+    id: 9,
+    career: 'Web and Applications Developer',
+    question: 'Why should an application use parameterized database queries?',
+    sampleAnswer:
+      'Parameterized queries separate user input from SQL commands, helping prevent SQL injection and making queries safer.',
+  },
+  {
+    id: 10,
+    career: 'Web and Applications Developer',
+    question: 'What is the difference between an HTTP GET request and a POST request?',
+    sampleAnswer:
+      'GET retrieves a resource. POST sends data for the server to process or create a resource, depending on the API.',
+  },
+  {
+    id: 11,
+    career: 'Web and Applications Developer',
+    question: 'How should passwords be handled in a web application?',
+    sampleAnswer:
+      'Passwords should be sent over HTTPS and stored only as strong salted password hashes, never as plain text.',
+  },
+  {
+    id: 12,
+    career: 'Web and Applications Developer',
+    question: 'What would you do if your code changes conflict with a teammate’s changes?',
+    sampleAnswer:
+      'I would review both changes, discuss the intended behavior with my teammate, resolve the conflict, and run the relevant checks.',
+  },
+  {
+    id: 13,
+    career: 'Web and Applications Developer',
+    question: 'What kinds of tests would you write for a registration form?',
+    sampleAnswer:
+      'I would test required fields, invalid input, successful submission, server errors, and whether users can complete the form with assistive input.',
+  },
+  {
+    id: 14,
+    career: 'Web and Applications Developer',
+    question: 'How would you approach a bug that appears only after deployment?',
+    sampleAnswer:
+      'I would reproduce it in the deployed environment, compare configuration and logs, identify the smallest cause, and verify the fix there.',
+  },
+  {
+    id: 15,
+    career: 'Web and Applications Developer',
+    question: 'Name two ways to improve the loading speed of a web page.',
+    sampleAnswer:
+      'I could reduce image sizes and unnecessary JavaScript, then measure the result to see which change helped.',
+  },
+  {
+    id: 16,
+    career: 'Web and Applications Developer',
+    question: 'What would you ask before building a feature from an unclear request?',
+    sampleAnswer:
+      'I would ask who will use it, what task they need to complete, what success looks like, and any important constraints.',
+  },
+  {
+    id: 17,
+    career: 'Web and Applications Developer',
+    question: 'Tell me about a time you disagreed with a teammate about a technical decision.',
+    sampleAnswer:
+      'I would describe the situation, the options we considered, how we tested or discussed them, and what we learned from the outcome.',
+  },
+  {
+    id: 18,
+    career: 'Web and Applications Developer',
+    question: 'How do you learn a technology you have not used before?',
+    sampleAnswer:
+      'I start with official documentation, build a small example, ask questions when stuck, and apply what I learn to a real task.',
+  },
+  {
+    id: 19,
+    career: 'Web and Applications Developer',
+    question: 'How would you prioritize a critical bug while working toward a deadline?',
+    sampleAnswer:
+      'I would assess the impact, tell the team what is at risk, fix the highest-impact issue first, and adjust the plan openly.',
+  },
+  {
+    id: 20,
+    career: 'Web and Applications Developer',
+    question: 'How would you explain a technical problem to someone without a technical background?',
+    sampleAnswer:
+      'I would describe the user impact in plain language, explain the next step, and check that the person understands the update.',
+  },
 ];
 
 export const resumeAnalysis = {

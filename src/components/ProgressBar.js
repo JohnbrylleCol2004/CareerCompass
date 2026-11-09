@@ -48,8 +48,8 @@ export default function ProgressBar({
         ]}
       >
         {meetsRequirement
-          ? 'Requirement met'
-          : 'Needs improvement'}
+          ? 'Example meets target'
+          : 'Example below target'}
       </Text>
     </View>
   );
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   status: {
-    fontSize: 12,
+    fontSize: 14,
     marginTop: 4,
   },
 });

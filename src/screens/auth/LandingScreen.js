@@ -3,6 +3,7 @@ import {
   View,
   Text,
   StyleSheet,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -13,19 +14,16 @@ export default function LandingScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <View style={styles.logoCircle}>
-          <Text style={styles.logo}>✦</Text>
-        </View>
+        <Image source={require('../../../assets/careercompass_logo.png')} style={styles.logo} accessibilityLabel="CareerCompass logo" />
 
-        <Text style={styles.title}>Career Compass</Text>
+        <Text style={styles.title}>CareerCompass</Text>
 
         <Text style={styles.subtitle}>
-          Your decision-support tool for discovering the right career path.
+          Explore where your BSIT degree can take you.
         </Text>
 
         <Text style={styles.description}>
-          Identify your skills, explore careers, receive elective
-          recommendations, and prepare for future job opportunities.
+          Compare career paths and electives, review example skill gaps, and prepare for interviews and resumes.
         </Text>
 
         <View style={styles.buttonContainer}>
@@ -36,6 +34,7 @@ export default function LandingScreen({ navigation }) {
 
           <PrimaryButton
             title="Create Account"
+            variant="secondary"
             onPress={() => navigation.navigate('Register')}
           />
         </View>
@@ -54,19 +53,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 28,
   },
-  logoCircle: {
+  logo: {
     alignSelf: 'center',
     width: 80,
     height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: 16,
     marginBottom: 22,
-  },
-  logo: {
-    fontSize: 45,
-    color: colors.white,
   },
   title: {
     fontSize: 32,

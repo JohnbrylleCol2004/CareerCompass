@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHandler } from './handler.mjs';
 
-const questions = { questions: Array.from({ length: 5 }, (_, i) => ({ question: `Describe project ${i}.`, category: 'Behavioral' })) };
+const questions = { questions: Array.from({ length: 20 }, (_, i) => ({ question: `Describe project ${i}.`, category: 'Behavioral' })) };
 const feedback = { score: 7, summary: 'Clear answer.', strengths: ['Relevant'], improvements: ['Add evidence'], sampleAnswer: 'In [your project], I used...' };
 const analysis = { isResume: true, score: 75, summary: 'Strong project experience.', strengths: ['Clear projects'], improvements: ['Quantify outcomes'], missingSections: [], skills: ['JavaScript'], suggestedRoles: ['Junior web developer'], exampleBullet: 'Built a website using JavaScript for [number] users.' };
 const pdfBase64 = btoa('%PDF-1.7\nminimal test fixture');
@@ -62,7 +62,7 @@ test('question generation scopes profile and quota to the verified user and excl
   assert.doesNotMatch(ai.url, /gemini-secret/);
   assert.match(ai.url, /models\/gemini-3.5-flash-lite:generateContent$/);
   assert.equal(body.generationConfig.responseMimeType, 'application/json');
-  assert.equal(body.generationConfig.responseJsonSchema.properties.questions.minItems, 5);
+  assert.equal(body.generationConfig.responseJsonSchema.properties.questions.minItems, 20);
   assert.equal(JSON.parse(body.contents[0].parts[0].text).profile.program, 'BSIT');
   assert.doesNotMatch(ai.options.body, /PRIVATE NAME|PRIVATE ID|service-secret|user-token/);
 });
@@ -70,6 +70,22 @@ test('feedback sends the actual answer and returns validated coaching', async ()
   const s = setup({ value: feedback });
   assert.deepEqual(await (await s.send({ action: 'interview_feedback', question: 'Tell me about a project', answer: 'I built a website.' })).json(), feedback);
   assert.equal(JSON.parse(JSON.parse(s.calls[3].options.body).contents[0].parts[0].text).answer, 'I built a website.');
+});
+
+test('career assessment sends one complete set and rejects incomplete or duplicated area results', async () => {
+  const answers = Array.from({ length: 20 }, (_, i) => ({ question: `Question ${i + 1}?`, answer: `Answer ${i + 1}` }));
+  const ids = ['programming', 'web', 'database', 'networking', 'security', 'systems', 'integration', 'quality', 'analysis', 'support'];
+  const value = { areas: ids.map((area, i) => ({ area, level: 'demonstrated', evidence: [i + 1], note: 'Relevant explanation.' })) };
+  const s = setup({ value });
+  assert.deepEqual(await (await s.send({ action: 'career_assessment', answers })).json(), value);
+  const sent = JSON.parse(JSON.parse(s.calls[3].options.body).contents[0].parts[0].text);
+  assert.equal(sent.answers.length, 20);
+  assert.equal(sent.answers[19].number, 20);
+  const invalid = setup();
+  assert.equal((await invalid.send({ action: 'career_assessment', answers: answers.slice(1) })).status, 400);
+  assert.ok(invalid.calls.every(call => !call.url.includes('generativelanguage.googleapis.com')));
+  const duplicate = setup({ value: { areas: [...value.areas.slice(0, 9), value.areas[0]] } });
+  assert.equal((await duplicate.send({ action: 'career_assessment', answers })).status, 502);
 });
 test('resume sends the actual PDF inline without creating persistent file storage', async () => {
   const s = setup({ value: analysis });
@@ -145,7 +161,7 @@ test('thought parts are excluded and supported schema constraints are sent to Ge
   assert.deepEqual(await (await s.send()).json(), questions);
   const schema = JSON.parse(s.calls[3].options.body).generationConfig.responseJsonSchema;
   assert.equal(schema.properties.questions.items.properties.question.maxLength, undefined);
-  assert.equal(schema.properties.questions.maxItems, 5);
+  assert.equal(schema.properties.questions.maxItems, 20);
 });
 
 test('invalid API keys are reported as setup errors, not blamed on a resume PDF', async () => {

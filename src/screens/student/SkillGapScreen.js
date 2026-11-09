@@ -6,14 +6,19 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import AppHeader from '../../components/AppHeader';
-import ProgressBar from '../../components/ProgressBar';
-import { skills } from '../../data/mockData';
+import StudentMenuHeader from '../../components/StudentMenuHeader';
+import PrimaryButton from '../../components/PrimaryButton';
+import SummaryCard from '../../components/SummaryCard';
+import { useAssessment } from '../../context/AssessmentContext';
+import { AREAS } from '../../data/careerAssessment.mjs';
 import { colors } from '../../theme/colors';
 
-export default function SkillGapScreen() {
+export default function SkillGapScreen({ navigation }) {
+  const { result, loading } = useAssessment();
+  const byArea = Object.fromEntries((result?.areas || []).map(item => [item.area, item]));
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right', 'bottom']}>
+      <StudentMenuHeader title="Skill Gap Analysis" current="Skill Gap" navigation={navigation} />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.container}
@@ -23,21 +28,20 @@ export default function SkillGapScreen() {
         overScrollMode="never"
         keyboardShouldPersistTaps="handled"
       >
-        <AppHeader title="Skill Gap Analysis" />
-
-        <Text style={styles.title}>
-          Example Skill Gap Indicators
-        </Text>
-        <Text style={styles.note}>These sample scores illustrate skill gaps; they do not assess your own skills.</Text>
-
-        {skills.map((skill) => (
-          <ProgressBar
-            key={skill.id}
-            label={skill.name}
-            current={skill.currentScore}
-            required={skill.requiredScore}
-          />
-        ))}
+        <Text style={styles.title}>Skill Gap</Text>
+        {loading ? <Text style={styles.note}>Loading your assessment…</Text> : !result ? <>
+          <Text style={styles.note}>Complete all 20 Interview Coach questions to see practice-based skill findings here.</Text>
+          <PrimaryButton title="Open Interview Coach" onPress={() => navigation.navigate('InterviewCoach')} />
+        </> : <>
+          <Text style={styles.note}>Based on your completed Interview Coach answers. These levels describe what your answers showed, not verified ability. “Not assessed” means there was too little evidence. Review areas marked developing or not assessed for your next practice session.</Text>
+          <Text style={styles.note}>Reviewed {new Date(result.completedAt).toLocaleDateString()}</Text>
+          {AREAS.map(([id, name]) => {
+            const area = byArea[id];
+            return <SummaryCard key={id} title={`${name} · ${area?.level || 'unassessed'}`}
+              description={`${area?.note || 'No answer evidence available.'}${area?.evidence.length ? ` Questions ${area.evidence.join(', ')}.` : ''}`} />;
+          })}
+          <PrimaryButton title="Practice again" variant="secondary" onPress={() => navigation.navigate('InterviewCoach')} />
+        </>}
       </ScrollView>
     </SafeAreaView>
   );

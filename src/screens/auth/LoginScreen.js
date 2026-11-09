@@ -1,12 +1,14 @@
 import { useAuth } from '../../context/AuthContext';
 import React, { useState } from 'react';
 import {
-  View,
   Text,
   TextInput,
   StyleSheet,
   Alert,
   TouchableOpacity,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -21,9 +23,10 @@ export default function LoginScreen({ navigation }) {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   async function handleLogin() {
-  if (!requireConnection()) return;
+  if (loading || !requireConnection()) return;
   if (!email || !password) {
     Alert.alert(
       'Missing Information',
@@ -33,20 +36,19 @@ export default function LoginScreen({ navigation }) {
   }
 
   try {
+    setLoading(true);
     await login(email, password);
-
-    Alert.alert(
-      'Login Successful',
-      'Welcome back!'
-    );
   } catch (error) {
     Alert.alert('Login Failed', error.message);
+  } finally {
+    setLoading(false);
   }
 }
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
+      <KeyboardAvoidingView style={styles.keyboardView} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>Login</Text>
 
         <Text style={styles.subtitle}>
@@ -62,6 +64,8 @@ export default function LoginScreen({ navigation }) {
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
+          accessibilityLabel="Email address"
+          editable={!loading}
         />
 
         <Text style={styles.label}>Password</Text>
@@ -70,10 +74,13 @@ export default function LoginScreen({ navigation }) {
           placeholder="Enter password"
           value={password}
           onChangeText={setPassword}
+          editable={!loading}
         />
 
         <TouchableOpacity
           onPress={() => navigation.navigate('ForgotPassword')}
+          accessibilityRole="button"
+          style={styles.linkButton}
         >
           <Text style={styles.forgotPassword}>
             Forgot Password?
@@ -83,26 +90,29 @@ export default function LoginScreen({ navigation }) {
         <PrimaryButton
           title="Login"
           onPress={handleLogin}
+          loading={loading}
         />
 
-        <View style={styles.registerRow}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Register')}
+          accessibilityRole="button"
+          accessibilityLabel="Register for an account"
+          style={styles.registerPrompt}
+        >
           <Text style={styles.normalText}>
-            Do not have an account?
+            Do not have an account? <Text style={styles.link}>Register</Text>
           </Text>
-
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Register')}
-          >
-            <Text style={styles.link}> Register</Text>
-          </TouchableOpacity>
-        </View>
+        </TouchableOpacity>
 
         <TouchableOpacity
           onPress={() => navigation.goBack()}
+          accessibilityRole="button"
+          style={styles.linkButton}
         >
           <Text style={styles.back}>Back</Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -113,10 +123,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   container: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: 'center',
     padding: 28,
   },
+  keyboardView: { flex: 1 },
+  linkButton: { minHeight: 44, justifyContent: 'center' },
   title: {
     fontSize: 30,
     fontWeight: 'bold',
@@ -142,29 +154,33 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 8,
     padding: 13,
+    minHeight: 50,
     fontSize: 15,
   },
   forgotPassword: {
     textAlign: 'right',
-    color: colors.primary,
+    color: colors.primaryDark,
     marginTop: 12,
     marginBottom: 12,
     fontWeight: 'bold',
   },
-  registerRow: {
-    flexDirection: 'row',
+  registerPrompt: {
+    minHeight: 48,
     justifyContent: 'center',
-    marginTop: 18,
+    marginTop: 12,
   },
   normalText: {
     color: colors.gray,
+    fontSize: 15,
+    lineHeight: 22,
+    textAlign: 'center',
   },
   link: {
-    color: colors.primary,
+    color: colors.primaryDark,
     fontWeight: 'bold',
   },
   back: {
-    color: colors.primary,
+    color: colors.primaryDark,
     textAlign: 'center',
     marginTop: 22,
     fontWeight: 'bold',

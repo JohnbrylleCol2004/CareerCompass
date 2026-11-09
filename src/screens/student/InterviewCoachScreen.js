@@ -12,17 +12,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useHeaderHeight } from '@react-navigation/elements';
 
 import PrimaryButton from '../../components/PrimaryButton';
-import { interviewQuestions } from '../../data/mockData';
+import { bsitInterviewQuestions } from '../../data/bsitInterviewQuestions';
 import { colors } from '../../theme/colors';
 import { useAuth } from '../../context/AuthContext';
 import { useNetwork } from '../../context/NetworkContext';
 import { requestCareerAi } from '../../services/careerAiService';
 import SummaryCard from '../../components/SummaryCard';
 import AiFeedbackCard from '../../components/AiFeedbackCard';
+import { useAssessment } from '../../context/AssessmentContext';
+import { isCompleteSet } from '../../data/careerAssessment.mjs';
 
-export default function InterviewCoachScreen() {
+export default function InterviewCoachScreen({ navigation }) {
   const [questionIndex, setQuestionIndex] = useState(0);
-  const [questions, setQuestions] = useState(interviewQuestions);
+  const [questions, setQuestions] = useState(bsitInterviewQuestions);
   const [answers, setAnswers] = useState({});
   const [feedback, setFeedback] = useState({});
   const [loading, setLoading] = useState('');
@@ -30,11 +32,14 @@ export default function InterviewCoachScreen() {
   const [generated, setGenerated] = useState(false);
   const busy = useRef(false);
   const { user } = useAuth();
+  const { result: assessment, saveAssessment } = useAssessment();
   const { requireConnection } = useNetwork();
   const headerHeight = useHeaderHeight();
   const question = questions[questionIndex];
   const answer = answers[questionIndex] || '';
   const result = feedback[questionIndex];
+  const answerSet = questions.map((item, index) => ({ question: item.question, answer: answers[index] || '' }));
+  const completed = isCompleteSet(answerSet);
 
   async function runAi(action) {
     if (busy.current || !requireConnection()) return;
@@ -43,20 +48,23 @@ export default function InterviewCoachScreen() {
     setError('');
     try {
       const data = await requestCareerAi({ action,
-        ...(action === 'interview_feedback' ? { question: question.question, answer } : {}) });
+        ...(action === 'interview_feedback' ? { question: question.question, answer } : {}),
+        ...(action === 'career_assessment' ? { answers: answerSet } : {}) });
       if (action === 'interview_questions') {
         setQuestions(data.questions);
         setQuestionIndex(0);
         setAnswers({});
         setFeedback({});
         setGenerated(true);
+      } else if (action === 'career_assessment') {
+        await saveAssessment(data);
       } else setFeedback(previous => ({ ...previous, [questionIndex]: data }));
     } catch (err) { setError(err?.message || 'Unable to connect to AI. Please try again.'); }
     finally { busy.current = false; setLoading(''); }
   }
 
   function nextQuestion() {
-    setQuestionIndex((questionIndex + 1) % questions.length);
+    setQuestionIndex(current => Math.min(current + 1, questions.length - 1));
     setError('');
   }
 
@@ -82,8 +90,9 @@ export default function InterviewCoachScreen() {
             </Text>
 
             <Text style={styles.note}>Practice for {user?.program || 'your program'}{user?.career_target ? ` · ${user.career_target}` : ''}.</Text>
-            <Text style={styles.note}>Generating questions shares your program, career target, interests, and technologies with Google Gemini. Requesting feedback also shares your answer. Avoid private information. Free-tier inputs may be used to improve Google products; use sample data for testing. Practice is kept only while this screen is open.</Text>
-            <PrimaryButton title={generated ? 'Generate New AI Questions' : 'Generate 5 AI Questions'}
+            <Text style={styles.note}>Generating questions shares your program, career target, interests, and technologies with Google Gemini. Requesting feedback shares that answer. Avoid private information. Free-tier inputs may be used to improve Google products; use sample data for testing. Answers stay on this screen. A completed assessment saves only area ratings and short evidence notes on this device.</Text>
+            <PrimaryButton title={generated ? 'Generate 20 New AI Questions' : 'Generate 20 AI Questions'}
+              variant="secondary"
               loading={loading === 'interview_questions'} disabled={!!loading}
               onPress={() => runAi('interview_questions')} />
             <Text style={styles.note}>{generated ? 'AI-generated questions' : 'Built-in practice questions · available offline'}</Text>
@@ -105,7 +114,7 @@ export default function InterviewCoachScreen() {
               value={answer}
               accessibilityLabel="Your interview answer"
               editable={!loading}
-              maxLength={6000}
+              maxLength={1200}
               onChangeText={text => {
                 setAnswers(previous => ({ ...previous, [questionIndex]: text }));
                 setFeedback(previous => ({ ...previous, [questionIndex]: undefined }));
@@ -131,14 +140,24 @@ export default function InterviewCoachScreen() {
               <Text style={styles.note}>AI feedback can be inaccurate. Adapt examples to your real experience.</Text>
             </>}
 
-            <PrimaryButton title="Previous Question" disabled={!!loading || questionIndex === 0}
+            <PrimaryButton title="Previous Question" variant="secondary" disabled={!!loading || questionIndex === 0}
               onPress={() => { setQuestionIndex(questionIndex - 1); setError(''); }} />
 
             <PrimaryButton
               title="Next Question"
+              variant="secondary"
               onPress={nextQuestion}
-              disabled={!!loading}
+              disabled={!!loading || questionIndex === questions.length - 1}
             />
+            {questionIndex === questions.length - 1 && <>
+              <Text style={styles.note}>Answer all 20 questions to review them together. This sends the questions and answers to Google Gemini once. Results are practice guidance, not verified skill or hiring scores.</Text>
+              <PrimaryButton title="Assess answers for Skill Gap and Careers"
+                loading={loading === 'career_assessment'} disabled={!!loading || !completed}
+                onPress={() => runAi('career_assessment')} />
+              {!completed && <Text style={styles.note}>Complete every answer (up to 1,200 characters each) to enable the assessment.</Text>}
+              {!!assessment && <PrimaryButton title="View Skill Gap" variant="secondary"
+                onPress={() => navigation.navigate('StudentTabs', { screen: 'Skill Gap' })} />}
+            </>}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

@@ -1,7 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Ionicons } from '@expo/vector-icons';
 
 import DashboardScreen from '../screens/student/DashboardScreen';
 import ProfileScreen from '../screens/student/ProfileScreen';
@@ -12,43 +11,15 @@ import CareerRecommendationScreen from '../screens/student/CareerRecommendationS
 import InterviewCoachScreen from '../screens/student/InterviewCoachScreen';
 import ResumeAnalyzerScreen from '../screens/student/ResumeAnalyzerScreen';
 
-import { colors } from '../theme/colors';
-
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function StudentTabs() {
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.gray,
-        tabBarStyle: {
-          backgroundColor: colors.white,
-        },
-        tabBarIcon: ({ color, size }) => {
-          let iconName = 'home-outline';
-
-          if (route.name === 'Dashboard') {
-            iconName = 'home-outline';
-          } else if (route.name === 'Skill Gap') {
-            iconName = 'analytics-outline';
-          } else if (route.name === 'Careers') {
-            iconName = 'briefcase-outline';
-          } else if (route.name === 'Profile') {
-            iconName = 'person-outline';
-          }
-
-          return (
-            <Ionicons
-              name={iconName}
-              size={size}
-              color={color}
-            />
-          );
-        },
-      })}
+      backBehavior="firstRoute"
+      tabBar={() => null}
+      screenOptions={{ headerShown: false }}
     >
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
       <Tab.Screen name="Skill Gap" component={SkillGapScreen} />

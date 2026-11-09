@@ -18,19 +18,19 @@ CareerCompass helps students discover suitable IT career paths through skill gap
 
 ## Positioning
 
-The intended guidance combines the BSIT curriculum and elective mapping supplied for this project, student profile and skill context, and AI coaching. The combination is the product direction; the current career, elective, and skill gap lists include sample data and should not be presented as individualized assessments.
+The intended guidance combines the BSIT curriculum and elective mapping supplied for this project, student profile and skill context, and AI coaching. Completing all 20 Interview Coach answers produces practice-based skill findings and career paths to explore. Electives remain a curriculum list rather than individualized recommendations.
 
 ## Operating Context
 
-Students create an account, enter their program, career target, interests, and technologies, then explore career roles, example skill gaps, and recommended electives. They can practice interview questions and submit a PDF resume for AI feedback when connected to the service.
+Students create an account, enter their program, career target, interests, and technologies, then explore career roles and recommended electives. They can practice interview questions, assess a completed set to see evidence-based skill findings and role suggestions, and submit a PDF resume for AI feedback when connected to the service.
 
 ## Capabilities and Constraints
 
 - The mobile app uses Expo and React Native with Supabase authentication and profile data.
 - The current BSIT catalog includes primary and secondary job roles and six recommended elective courses from the curriculum excerpts the user supplied. The curriculum's issuing authority and whether it is the university's current official curriculum have not been established.
-- Career, elective, and skill gap displays currently use sample data. Keep their sample status clear until a real student-specific assessment or mapping is implemented.
+- Skill Gap and suggested career paths derive from the completed Interview Coach set. Ratings reflect evidence in answers, not verified ability; areas without enough evidence are marked unassessed. Career ordering uses a fixed heuristic mapping from skill areas to the supplied BSIT roles, not an official university or employer requirement. The full role and elective catalogs remain available.
 - Interview Coach and Resume Analyzer use a Supabase Edge Function backed by Gemini. The built-in interview questions remain available offline; AI requests need a connection.
-- Resume analysis is coaching guidance, not an ATS score or hiring prediction. The selected PDF may contain personal information and is sent to the AI provider for analysis. Interview answers and resume results are kept in screen memory rather than a saved history.
+- Resume analysis is coaching guidance, not an ATS score or hiring prediction. The selected PDF may contain personal information and is sent to the AI provider for analysis. Interview answers and resume results remain in screen memory. Only derived area ratings, question numbers, and short notes are saved on the device per signed-in account after assessment; raw answers are not saved.
 
 ## Brand Commitments
 
@@ -45,6 +45,6 @@ The product name is CareerCompass. The repository includes an existing app logo 
 ## Product Principles
 
 1. Make the path from career exploration to a useful student action clear.
-2. Ground BSIT guidance in the supplied curriculum while distinguishing examples from personal results.
+2. Ground BSIT guidance in the supplied curriculum while distinguishing interview evidence from verified skill.
 3. Use profile context and AI feedback where they improve preparation, with clear limits on what the guidance can claim.
 4. Respect student privacy when handling resumes, interview answers, and account data.

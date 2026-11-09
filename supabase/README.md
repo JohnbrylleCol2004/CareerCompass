@@ -1,6 +1,6 @@
 # Gemini setup for CareerCompass
 
-Both Interview Coach and Resume Analyzer call the `career-ai` Supabase Edge Function. It verifies the student's Supabase Auth token, loads only career-related profile context, enforces server-side limits, and calls the Google Gemini API using `gemini-3.5-flash-lite`. The Gemini key and Supabase service-role key never belong in the mobile app.
+Interview Coach, its completed-set assessment, and Resume Analyzer call the `career-ai` Supabase Edge Function. It verifies the student's Supabase Auth token, loads only career-related profile context, enforces server-side limits, and calls the Google Gemini API using `gemini-3.5-flash-lite`. The Gemini key and Supabase service-role key never belong in the mobile app.
 
 ## 1. Create a Gemini API key
 
@@ -20,7 +20,7 @@ This adds usage counters and a service-role-only quota function. It does not cha
 
 Default limits reset at midnight UTC:
 
-- 30 interview requests per student per day (generation and feedback combined).
+- 30 interview requests per student per day (generation, feedback, and completed-set assessment combined).
 - 3 resume analyses per student per day.
 - 300 AI requests across the project per day.
 
@@ -50,7 +50,8 @@ No extra mobile native package was added for this integration. Reload the app fo
 ## 5. Test on your device
 
 1. Sign in and set your program/course and career target in Profile.
-2. Open Interview Coach, tap **Generate 5 AI Questions**, write an answer, and tap **Get AI Feedback**. Check that Previous/Next preserves each answer and feedback, and editing an answer removes its stale feedback.
+2. Open Interview Coach, tap **Generate 20 AI Questions**, write an answer, and tap **Get AI Feedback**. Check that Previous/Next preserves each answer and feedback, and editing an answer removes its stale feedback.
+   Answer all 20 questions and tap **Assess answers for Skill Gap and Careers**. Check that Skill Gap shows area evidence and Careers suggests paths only where the answers provide enough evidence. Restart the app to check that the derived findings remain available without the raw answers.
 3. Open Resume Analyzer and choose a short, unencrypted PDF resume (up to 10 MB). Tap **Analyze Resume**. Confirm feedback refers to its actual content. Test with a different resume; results should change. An unrelated PDF should get a document warning.
 4. Turn off Wi-Fi and mobile data. AI actions should show the designed connection warning. Built-in interview questions remain available offline.
 5. Check Supabase Function logs and Google AI Studio usage for status/errors. Never add request-body, PDF, answer, token, or secret logging.
@@ -59,9 +60,9 @@ Setup errors are shown in the app. A missing migration fails closed before calli
 
 ## Data and limitations
 
-Only `program`, `career_target`, `interests`, and `technologies` are included as profile context. Interview feedback includes the question and answer. Resume analysis sends the entire selected PDF, which may include personal information. Each screen explains this before the user starts the request.
+Only `program`, `career_target`, `interests`, and `technologies` are included as profile context. Interview feedback includes the question and answer. Completed-set assessment sends all 20 questions and answers in one request. Resume analysis sends the entire selected PDF, which may include personal information. Each screen explains this before the user starts the request.
 
-PDFs are sent inline to Gemini without uploading to Supabase Storage or the Gemini Files API. The picker may keep a temporary local copy in the app cache. The function does not log PDFs or answers. Provider processing and retention follow [Gemini API terms](https://ai.google.dev/gemini-api/terms); free-tier inputs and outputs may be used to improve Google products. Results and interview answers are kept in screen memory only. No analysis history or automatic offline synchronization is implemented.
+PDFs are sent inline to Gemini without uploading to Supabase Storage or the Gemini Files API. The picker may keep a temporary local copy in the app cache. The function does not log PDFs or answers. Provider processing and retention follow [Gemini API terms](https://ai.google.dev/gemini-api/terms); free-tier inputs and outputs may be used to improve Google products. Raw interview answers and resume results stay in screen memory. Completed-set assessment saves only derived area levels, question numbers, and short notes on the device under the signed-in user ID. This is device-local storage, with no cloud sync or history.
 
 PDF extension, size, Base64 encoding, and signature are checked on the server. Document parsing is performed by Gemini; damaged, encrypted, or excessively long PDFs may be rejected. A resume score is coaching guidance, not an ATS test or hiring probability. Review AI suggestions and replace placeholders with real experience.
 

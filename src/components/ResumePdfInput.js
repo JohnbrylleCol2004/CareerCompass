@@ -59,7 +59,7 @@ export default function ResumePdfInput({ onSelect, disabled = false }) {
   return (
     <View>
       <Text style={{ color: colors.gray }}>Choose a PDF resume from your device. Maximum 10 MB.</Text>
-      <PrimaryButton title="Add PDF" onPress={pickFile} loading={busy} disabled={busy || disabled} />
+      <PrimaryButton title="Add PDF" variant="secondary" onPress={pickFile} loading={busy} disabled={busy || disabled} />
       {!!error && <Text accessibilityRole="alert" style={{ color: colors.danger }}>{error}</Text>}
     </View>
   );

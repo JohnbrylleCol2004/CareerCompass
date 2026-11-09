@@ -47,6 +47,8 @@ test('specialization elective links point to courses in the BSIT catalog', async
 test('built-in interview questions point to a listed BSIT career path', async () => {
   const { careers, interviewQuestions } = await catalog;
   const names = new Set(careers.map(role => role.name));
+  assert.equal(interviewQuestions.length, 20);
+  assert.equal(new Set(interviewQuestions.map(item => item.question)).size, 20);
   for (const question of interviewQuestions) assert.ok(names.has(question.career), question.career);
 });
 

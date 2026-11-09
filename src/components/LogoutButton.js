@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   TouchableOpacity,
   Text,
   StyleSheet,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 
 import { useAuth } from '../context/AuthContext';
@@ -12,16 +14,18 @@ import { useNetwork } from '../context/NetworkContext';
 export default function LogoutButton() {
   const { logout } = useAuth();
   const { requireConnection } = useNetwork();
+  const [loading, setLoading] = useState(false);
 
   async function handleLogout() {
-    if (!requireConnection()) return;
-    console.log('LOGOUT BUTTON CLICKED');
+    if (loading || !requireConnection()) return;
+    setLoading(true);
 
     try {
       await logout();
-      console.log('LOGOUT SUCCESSFUL');
     } catch (error) {
-      console.log('LOGOUT ERROR:', error.message);
+      Alert.alert('Could not log out', error?.message || 'Please try again.');
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -30,8 +34,12 @@ export default function LogoutButton() {
       style={styles.button}
       onPress={handleLogout}
       activeOpacity={0.7}
+      disabled={loading}
+      accessibilityRole="button"
+      accessibilityLabel="Log out"
+      accessibilityState={{ disabled: loading, busy: loading }}
     >
-      <Text style={styles.text}>Logout</Text>
+      {loading ? <ActivityIndicator color={colors.white} /> : <Text style={styles.text}>Log out</Text>}
     </TouchableOpacity>
   );
 }
@@ -40,6 +48,8 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: colors.danger,
     padding: 15,
+    minHeight: 48,
+    justifyContent: 'center',
     borderRadius: 8,
     alignItems: 'center',
     margin: 20,

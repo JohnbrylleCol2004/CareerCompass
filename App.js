@@ -7,6 +7,7 @@ import AuthNavigator from './src/navigation/AuthNavigator';
 import StudentNavigator from './src/navigation/StudentNavigator';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { NetworkProvider } from './src/context/NetworkContext';
+import { AssessmentProvider } from './src/context/AssessmentContext';
 import OfflineNotice from './src/components/OfflineNotice';
 import { colors } from './src/theme/colors';
 
@@ -27,14 +28,16 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <NetworkProvider>
-      <AuthProvider>
-        <View style={{ flex: 1 }}>
-        <OfflineNotice />
-        <NavigationContainer>
-          <RootNavigator />
-        </NavigationContainer>
-        </View>
-      </AuthProvider>
+        <AuthProvider>
+          <AssessmentProvider>
+            <View style={{ flex: 1 }}>
+              <OfflineNotice />
+              <NavigationContainer>
+                <RootNavigator />
+              </NavigationContainer>
+            </View>
+          </AssessmentProvider>
+        </AuthProvider>
       </NetworkProvider>
     </SafeAreaProvider>
   );

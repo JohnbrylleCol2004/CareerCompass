@@ -1,63 +1,27 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
-  TextInput,
   StyleSheet,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import PrimaryButton from '../../components/PrimaryButton';
 import { colors } from '../../theme/colors';
-import { useNetwork } from '../../context/NetworkContext';
 
 export default function ForgotPasswordScreen({ navigation }) {
-  const { requireConnection } = useNetwork();
-  const [email, setEmail] = useState('');
-
-  function handleReset() {
-    if (!requireConnection()) return;
-    if (!email) {
-      Alert.alert('Missing Email', 'Please enter your email address.');
-      return;
-    }
-
-    Alert.alert(
-      'Reset Link Sent',
-      'A password reset link would be sent to your email.'
-    );
-
-    navigation.navigate('Login');
-  }
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <Text style={styles.title}>Forgot Password</Text>
+        <Text style={styles.title}>Password reset unavailable</Text>
 
         <Text style={styles.description}>
-          Enter your registered email address to reset your password.
+          Password reset is not set up yet. No reset email will be sent from this version.
         </Text>
-
-        <Text style={styles.label}>Email Address</Text>
-
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your email"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-
-        <PrimaryButton
-          title="Send Reset Link"
-          onPress={handleReset}
-        />
 
         <PrimaryButton
           title="Back to Login"
+          variant="secondary"
           onPress={() => navigation.navigate('Login')}
         />
       </View>
@@ -87,19 +51,5 @@ const styles = StyleSheet.create({
     color: colors.gray,
     lineHeight: 22,
     marginBottom: 28,
-  },
-  label: {
-    color: colors.dark,
-    fontWeight: 'bold',
-    marginBottom: 6,
-  },
-  input: {
-    backgroundColor: colors.white,
-    borderColor: colors.border,
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 13,
-    fontSize: 15,
-    marginBottom: 15,
   },
 });

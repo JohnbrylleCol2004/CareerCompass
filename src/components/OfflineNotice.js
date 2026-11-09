@@ -29,7 +29,6 @@ export default function OfflineNotice() {
         <View style={styles.card}>
           <ScrollView contentContainerStyle={styles.cardContent}>
             <View style={styles.largeBadge}><Text style={styles.largeExclamation}>!</Text></View>
-            <Text style={styles.eyebrow}>CONNECTION NEEDED</Text>
             <Text style={styles.title}>Let’s get you back online</Text>
             <Text style={styles.description}>Connect to Wi-Fi or turn on mobile data, then try again.</Text>
             <View style={styles.infoBox}>
@@ -57,7 +56,7 @@ const styles = StyleSheet.create({
   badge: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#F6D58D', alignItems: 'center', justifyContent: 'center' },
   exclamation: { fontSize: 22, fontWeight: 'bold', color: '#805215' },
   copy: { flex: 1 }, bannerTitle: { color: '#65400E', fontWeight: 'bold', fontSize: 15 },
-  bannerText: { color: '#805215', fontSize: 12, lineHeight: 17, marginTop: 2 },
+  bannerText: { color: '#805215', fontSize: 14, lineHeight: 19, marginTop: 2 },
   retrySmall: { minHeight: 44, minWidth: 48, justifyContent: 'center', alignItems: 'center' },
   retryText: { fontWeight: 'bold', color: '#805215' },
   backdrop: { flex: 1, backgroundColor: 'rgba(12, 37, 32, 0.6)', justifyContent: 'center', padding: 24 },
@@ -65,12 +64,11 @@ const styles = StyleSheet.create({
   cardContent: { padding: 24, alignItems: 'center' },
   largeBadge: { width: 76, height: 76, borderRadius: 38, backgroundColor: '#FFF0CF', justifyContent: 'center', alignItems: 'center', marginBottom: 18 },
   largeExclamation: { fontSize: 44, fontWeight: 'bold', color: '#A36D19' },
-  eyebrow: { color: '#A36D19', fontWeight: 'bold', fontSize: 11, letterSpacing: 1.5, marginBottom: 10 },
   title: { color: colors.dark, fontSize: 24, fontWeight: 'bold', textAlign: 'center' },
   description: { color: colors.gray, fontSize: 15, lineHeight: 23, textAlign: 'center', marginVertical: 14 },
   infoBox: { width: '100%', backgroundColor: colors.background, borderRadius: 14, padding: 16, marginBottom: 20 },
   infoTitle: { color: colors.dark, fontWeight: 'bold', fontSize: 15, marginBottom: 6 },
-  infoText: { color: colors.text, fontSize: 13, lineHeight: 20, marginBottom: 4 },
+  infoText: { color: colors.text, fontSize: 14, lineHeight: 21, marginBottom: 4 },
   primary: { width: '100%', backgroundColor: colors.primaryDark, padding: 15, borderRadius: 12, alignItems: 'center', minHeight: 50 },
   primaryText: { color: colors.white, fontWeight: 'bold', fontSize: 16 },
   secondary: { padding: 15, minHeight: 48 },

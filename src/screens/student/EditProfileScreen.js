@@ -96,8 +96,9 @@ export default function EditProfileScreen({ navigation }) {
           </View>
         ))}
         <PrimaryButton
-          title={saving ? 'Saving...' : 'Save Changes'}
-          onPress={saving ? undefined : saveProfile}
+          title="Save Changes"
+          loading={saving}
+          onPress={saveProfile}
         />
       </ScrollView>
       </KeyboardAvoidingView>
