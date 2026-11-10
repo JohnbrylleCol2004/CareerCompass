@@ -13,6 +13,7 @@ import { useHeaderHeight } from '@react-navigation/elements';
 
 import PrimaryButton from '../../components/PrimaryButton';
 import { bsitInterviewQuestions } from '../../data/bsitInterviewQuestions';
+import { requireTwentyQuestions } from '../../data/interviewQuestionSet.mjs';
 import { colors } from '../../theme/colors';
 import { useAuth } from '../../context/AuthContext';
 import { useNetwork } from '../../context/NetworkContext';
@@ -52,7 +53,8 @@ export default function InterviewCoachScreen({ navigation }) {
         ...(action === 'interview_feedback' ? { question: question.question, answer } : {}),
         ...(action === 'career_assessment' ? { answers: answerSet } : {}) });
       if (action === 'interview_questions') {
-        setQuestions(data.questions);
+        const generatedQuestions = requireTwentyQuestions(data.questions);
+        setQuestions(generatedQuestions);
         setQuestionIndex(0);
         setAnswers({});
         setFeedback({});
