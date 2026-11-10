@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 
-const form = { email: 'student@example.com', password: 'example-password', username: 'student',
+const form = { email: 'student@example.com', password: 'StrongPass1!', username: 'student',
   firstName: 'Test', lastName: 'Student', studentId: '123', program: 'BSIT' };
 const metadata = { username: 'student', first_name: 'Test', last_name: 'Student', student_id: '123', program: 'BSIT' };
 function setup({ session = null, existing = null, pending = metadata, saveError = null, cached = null, readError = null } = {}) {
@@ -25,10 +25,12 @@ function setup({ session = null, existing = null, pending = metadata, saveError 
   };
   const source = fs.readFileSync('src/services/authService.js', 'utf8')
     .replace(/^import .*;\r?\n/gm, '').replace(/export async function/g, 'async function');
+  const policySource = fs.readFileSync('src/utils/passwordPolicy.mjs', 'utf8')
+    .replace(/export function/g, 'function');
   const context = vm.createContext({ supabase, AsyncStorage: {
     setItem: async () => {}, getItem: async () => cached,
   } });
-  vm.runInContext(`${source}\nthis.api = { register, login, getCurrentUser };`, context);
+  vm.runInContext(`${policySource}\n${source}\nthis.api = { register, login, getCurrentUser };`, context);
   return { api: context.api, calls };
 }
 
@@ -43,6 +45,12 @@ test('email confirmation saves form metadata without an unauthenticated profile 
 test('registration with a session writes the authenticated profile ID', async () => {
   const { api } = setup({ session: {} });
   assert.equal((await api.register(form)).id, 'auth-user');
+});
+
+test('weak registration passwords never reach Supabase sign up', async () => {
+  const { api, calls } = setup();
+  await assert.rejects(api.register({ ...form, password: 'weakpass' }), /Password/);
+  assert.ok(!calls.some(item => item[0] === 'signup'));
 });
 test('first login creates pending profile and ignores a metadata ID or role', async () => {
   const { api, calls } = setup({ pending: { ...metadata, id: 'another-user', role: 'admin' } });

@@ -21,6 +21,7 @@ import PasswordInput from '../../components/PasswordInput';
 import { useAuth } from '../../context/AuthContext';
 import { colors } from '../../theme/colors';
 import { useNetwork } from '../../context/NetworkContext';
+import { passwordRequirementError } from '../../utils/passwordPolicy.mjs';
 
 const careerOptions = [
   'Web Development',
@@ -136,11 +137,9 @@ export default function RegisterScreen({ navigation }) {
       return;
     }
 
-    if (password.length < 6) {
-      Alert.alert(
-        'Weak Password',
-        'Password must contain at least 6 characters.'
-      );
+    const passwordError = passwordRequirementError(password);
+    if (passwordError) {
+      Alert.alert('Weak Password', passwordError);
       return;
     }
 
@@ -329,7 +328,7 @@ export default function RegisterScreen({ navigation }) {
 
               <PasswordInput
                 style={styles.input}
-                placeholder="Minimum of 6 characters"
+                placeholder="Create a strong password"
                 placeholderTextColor={colors.gray}
                 value={password}
                 onChangeText={setPassword}
@@ -338,6 +337,7 @@ export default function RegisterScreen({ navigation }) {
                 editable={!loading}
                 autoCapitalize="none"
               />
+              <Text style={styles.passwordHint}>Use 8 or more characters with a lowercase letter, an uppercase letter, a number, and a special character.</Text>
             </View>
 
             <View style={[styles.halfField, useSingleColumn && styles.fullField]}
@@ -463,6 +463,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 6,
   },
+  passwordHint: { color: colors.gray, fontSize: 13, lineHeight: 19, marginTop: 6 },
 
   input: {
     minHeight: 50,

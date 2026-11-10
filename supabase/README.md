@@ -12,9 +12,14 @@ Free-tier inputs and outputs may be used to improve Google products. Use fiction
 
 ## 2. Install database usage limits
 
-In the Supabase project used by `EXPO_PUBLIC_SUPABASE_URL`, open **SQL Editor** and run all of:
+From the `CareerCompass` folder, apply the quota migration to the same Supabase project used by `EXPO_PUBLIC_SUPABASE_URL`:
 
-`supabase/migrations/202610160001_career_ai_quota.sql`
+```powershell
+npx.cmd supabase db push --dry-run --remote=YOUR_PROJECT_REF
+npx.cmd supabase db push --remote=YOUR_PROJECT_REF
+```
+
+The migration is [`supabase/migrations/20261110000000_career_ai_quota.sql`](migrations/20261110000000_career_ai_quota.sql). Replace `YOUR_PROJECT_REF` with the project reference from the app's Supabase URL. Check that the dry run lists only the expected migration, then confirm the push. If the CLI reports that this migration was already applied, do not run the SQL again.
 
 This adds usage counters and a service-role-only quota function. It does not change the `profiles` table or its policies. `profiles.id` must match the Auth user ID, and authenticated users need permission to read their own profile.
 

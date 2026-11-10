@@ -1,11 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
+import { passwordRequirementError } from '../utils/passwordPolicy.mjs';
 
 const SESSION_KEY = 'career_compass_session';
 
 // REGISTER
 export async function register(userData) {
   const { email, password } = userData;
+  const passwordError = passwordRequirementError(password);
+  if (passwordError) throw new Error(passwordError);
   const profile = {
     username: userData.username.trim(),
     first_name: userData.firstName.trim(),
