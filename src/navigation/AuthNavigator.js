@@ -7,15 +7,18 @@ import LandingScreen from '../screens/auth/LandingScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
 import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
+import useReducedMotion from '../hooks/useReducedMotion';
 
 const Stack = createNativeStackNavigator();
 
 export default function AuthNavigator() {
+  const reducedMotion = useReducedMotion();
   return (
     <Stack.Navigator
       initialRouteName="Landing"
       screenOptions={{
         headerShown: false,
+        animation: reducedMotion ? 'none' : 'default',
       }}
     >
       <Stack.Screen

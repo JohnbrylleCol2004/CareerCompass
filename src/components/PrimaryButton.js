@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  Animated,
+  Easing,
   Pressable,
   Text,
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
 import { colors } from '../theme/colors';
+import useReducedMotion from '../hooks/useReducedMotion';
 
 export default function PrimaryButton({
   title,
@@ -15,7 +18,18 @@ export default function PrimaryButton({
   variant = 'primary',
 }) {
   const inactive = disabled || loading;
+  const reducedMotion = useReducedMotion();
+  const [scale] = useState(() => new Animated.Value(1));
+
+  useEffect(() => () => scale.stopAnimation(), [scale]);
+
+  function animatePress(toValue, duration) {
+    if (reducedMotion || inactive) return;
+    Animated.timing(scale, { toValue, duration, easing: Easing.out(Easing.quad), useNativeDriver: true }).start();
+  }
+
   return (
+    <Animated.View style={{ transform: [{ scale }] }}>
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={title}
@@ -27,6 +41,8 @@ export default function PrimaryButton({
         disabled && !loading && styles.disabledButton,
       ]}
       onPress={onPress}
+      onPressIn={() => animatePress(0.98, 110)}
+      onPressOut={() => animatePress(1, 150)}
       disabled={inactive}
     >
       {loading ? (
@@ -35,6 +51,7 @@ export default function PrimaryButton({
         <Text style={[styles.text, variant === 'secondary' && styles.secondaryText, disabled && styles.disabledText]}>{title}</Text>
       )}
     </Pressable>
+    </Animated.View>
   );
 }
 

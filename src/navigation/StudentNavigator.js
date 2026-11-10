@@ -1,6 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import useReducedMotion from '../hooks/useReducedMotion';
 
 import DashboardScreen from '../screens/student/DashboardScreen';
 import ProfileScreen from '../screens/student/ProfileScreen';
@@ -15,11 +16,16 @@ const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function StudentTabs() {
+  const reducedMotion = useReducedMotion();
   return (
     <Tab.Navigator
       backBehavior="firstRoute"
       tabBar={() => null}
-      screenOptions={{ headerShown: false }}
+      screenOptions={{
+        headerShown: false,
+        animation: reducedMotion ? 'none' : 'fade',
+        transitionSpec: { animation: 'timing', config: { duration: 170 } },
+      }}
     >
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
       <Tab.Screen name="Skill Gap" component={SkillGapScreen} />
@@ -30,8 +36,9 @@ function StudentTabs() {
 }
 
 export default function StudentNavigator() {
+  const reducedMotion = useReducedMotion();
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={{ animation: reducedMotion ? 'none' : 'default' }}>
       <Stack.Screen
         name="StudentTabs"
         component={StudentTabs}

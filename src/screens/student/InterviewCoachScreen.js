@@ -19,6 +19,7 @@ import { useNetwork } from '../../context/NetworkContext';
 import { requestCareerAi } from '../../services/careerAiService';
 import SummaryCard from '../../components/SummaryCard';
 import AiFeedbackCard from '../../components/AiFeedbackCard';
+import ResultReveal from '../../components/ResultReveal';
 import { useAssessment } from '../../context/AssessmentContext';
 import { isCompleteSet } from '../../data/careerAssessment.mjs';
 
@@ -132,13 +133,13 @@ export default function InterviewCoachScreen({ navigation }) {
               />
             </View>
 
-            {result && <>
+            {result && <ResultReveal>
               <SummaryCard title="Practice score" value={`${result.score}/10`} description={result.summary} />
               <AiFeedbackCard title="Strengths" items={result.strengths} />
               <AiFeedbackCard title="Ways to improve" items={result.improvements} />
               <SummaryCard title="Example improved answer" description={result.sampleAnswer} />
               <Text style={styles.note}>AI feedback can be inaccurate. Adapt examples to your real experience.</Text>
-            </>}
+            </ResultReveal>}
 
             <PrimaryButton title="Previous Question" variant="secondary" disabled={!!loading || questionIndex === 0}
               onPress={() => { setQuestionIndex(questionIndex - 1); setError(''); }} />

@@ -13,6 +13,7 @@ import { colors } from '../../theme/colors';
 import { useNetwork } from '../../context/NetworkContext';
 import { analyzeResumePdf } from '../../services/careerAiService';
 import AiFeedbackCard from '../../components/AiFeedbackCard';
+import ResultReveal from '../../components/ResultReveal';
 
 export default function ResumeAnalyzerScreen() {
   const [resume, setResume] = useState(null);
@@ -68,7 +69,7 @@ export default function ResumeAnalyzerScreen() {
         {loading && <Text style={styles.fileDetails}>Reading your PDF and preparing feedback. This may take a minute.</Text>}
         {!!error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}
         {analysis && (
-          <>
+          <ResultReveal>
             <SummaryCard title={analysis.isResume ? 'Resume quality score' : 'Document needs attention'}
               value={analysis.isResume ? `${analysis.score}/100` : undefined} description={analysis.summary} />
             {analysis.isResume && <>
@@ -80,7 +81,7 @@ export default function ResumeAnalyzerScreen() {
               <SummaryCard title="Example improved bullet" description={analysis.exampleBullet} />
             </>}
             <Text style={styles.fileDetails}>AI feedback can be inaccurate. This score is practice guidance, not an ATS score or a hiring prediction. Review suggestions before using them.</Text>
-          </>
+          </ResultReveal>
         )}
       </ScrollView>
     </SafeAreaView>

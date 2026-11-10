@@ -31,7 +31,7 @@ export default function DashboardScreen({ navigation }) {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.welcomeRow}>
-          <Image source={require('../../../assets/careercompass_logo.png')} style={styles.logo} accessibilityLabel="CareerCompass logo" />
+          <Image source={require('../../../assets/careercompass-no-bg.png')} style={styles.logo} accessibilityLabel="CareerCompass logo" />
           <Text accessibilityRole="header" style={styles.heading}>
             Welcome, {user?.first_name || user?.username || 'Student'}!
           </Text>
@@ -96,7 +96,6 @@ const styles = StyleSheet.create({
   logo: {
     width: 56,
     height: 56,
-    borderRadius: 12,
   },
   heading: {
     flex: 1,

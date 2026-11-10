@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  Animated,
+  Easing,
   View,
   Text,
   StyleSheet,
@@ -7,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
+import useReducedMotion from '../hooks/useReducedMotion';
 
 export default function SummaryCard({
   title,
@@ -16,6 +19,15 @@ export default function SummaryCard({
   variant = 'card',
 }) {
   const isList = variant === 'list';
+  const reducedMotion = useReducedMotion();
+  const [scale] = useState(() => new Animated.Value(1));
+
+  useEffect(() => () => scale.stopAnimation(), [scale]);
+
+  function animatePress(toValue, duration) {
+    if (reducedMotion) return;
+    Animated.timing(scale, { toValue, duration, easing: Easing.out(Easing.quad), useNativeDriver: true }).start();
+  }
   const content = (
     <>
       <View style={styles.titleRow}>
@@ -34,14 +46,18 @@ export default function SummaryCard({
   if (!onPress) return <View style={[styles.card, isList && styles.listRow]}>{content}</View>;
 
   return (
+    <Animated.View style={{ transform: [{ scale }] }}>
     <Pressable
       style={({ pressed }) => [styles.card, isList && styles.listRow, styles.actionCard, pressed && styles.pressedCard]}
       onPress={onPress}
+      onPressIn={() => animatePress(0.99, 110)}
+      onPressOut={() => animatePress(1, 150)}
       accessibilityRole="button"
       accessibilityLabel={[title, value, description].filter(Boolean).join('. ')}
     >
       {content}
     </Pressable>
+    </Animated.View>
   );
 }
 
