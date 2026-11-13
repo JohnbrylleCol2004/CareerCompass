@@ -30,7 +30,7 @@ test('mobile resume service reads the chosen URI and sends its bytes to the prot
   assert.equal((await api.analyzeResumePdf({ name: 'my-resume.pdf', size: 100, uri: 'file:///app-cache/resume.pdf' })).score, 60);
   assert.equal(calls[0][1], 'file:///app-cache/resume.pdf');
   const [, name, options] = calls[1];
-  assert.equal(name, 'career-ai');
+  assert.equal(name, 'career-ai-mobile');
   assert.equal(options.body.pdfBase64, base64);
   assert.equal(options.timeout, 90000);
 });

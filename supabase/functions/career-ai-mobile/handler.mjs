@@ -7,6 +7,12 @@ const validText = (value, max) => typeof value === 'string' && value.trim().leng
 const MAX_PDF_BYTES = 10 * 1024 * 1024;
 const MAX_BODY_BYTES = Math.ceil(MAX_PDF_BYTES / 3) * 4 + 4096;
 
+function nextQuotaReset(now) {
+  const reset = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
+  return new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric',
+    year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }).format(reset);
+}
+
 async function readBody(req) {
   if (Number(req.headers.get('content-length')) > MAX_BODY_BYTES) throw new Error('PAYLOAD_TOO_LARGE');
   const reader = req.body?.getReader();
@@ -54,7 +60,7 @@ const prompts = {
   resume_analysis: 'Read the attached PDF itself. First decide whether it is a readable resume. For an unrelated, unreadable, blank, or encrypted document set isResume=false, score=0, lists empty, summary explaining why, and exampleBullet="Not available for this document." Otherwise assess resume quality for the student program and career target. Score 0-100 using five equally weighted dimensions: clarity, organization, relevant skills, evidence of experience/projects, and writing quality. This is practice guidance, not an ATS result or hiring probability. List specific strengths, actionable improvements, missing sections, skills actually evidenced in the PDF, and up to five plausible roles. Include one improved resume bullet grounded in the document; use placeholders for missing numbers and never fabricate accomplishments. Do not reproduce contact details, names, or other identifiers. Keep each list item concise.',
 };
 
-export function createHandler({ env, fetch: request }) {
+export function createHandler({ env, fetch: request, now = () => new Date() }) {
   return async req => {
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
     if (req.method !== 'POST') return reply(405, 'Use POST.');
@@ -64,7 +70,7 @@ export function createHandler({ env, fetch: request }) {
     const apikey = env('SUPABASE_ANON_KEY');
     const serviceKey = env('SUPABASE_SERVICE_ROLE_KEY');
     const key = env('GEMINI_API_KEY');
-    if (!url || !apikey || !serviceKey || !key) return reply(503, 'AI setup is not complete. Ask the administrator to configure Gemini in Supabase.');
+    if (!url || !apikey || !serviceKey || !key) return reply(503, 'AI setup is not complete. Ask the administrator to configure the AI service in Supabase.');
     try {
       const signal = AbortSignal.timeout(70000);
       const userHeaders = { apikey, Authorization: authorization, 'Content-Type': 'application/json' };
@@ -89,15 +95,17 @@ export function createHandler({ env, fetch: request }) {
         .map(field => [field, (typeof profile[field] === 'string' ? profile[field] : JSON.stringify(profile[field] ?? '')).slice(0, 1500)]));
       const quota = await request(`${url}/rest/v1/rpc/consume_career_ai_quota`, {
         method: 'POST', signal, headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ p_user_id: user.id, p_feature: body.action === 'resume_analysis' ? 'resume' : 'interview' }),
+        body: JSON.stringify({ p_user_id: user.id, p_kind: body.action === 'resume_analysis' ? 'resume' : 'interview' }),
       });
       if (!quota.ok) return reply(503, 'AI usage limits are not configured. Ask the administrator to run the AI SQL migration.');
-      if (await quota.json() !== true) return reply(429, 'The daily AI limit has been reached. Try tomorrow (UTC). Limits: 30 interview requests and 3 resume analyses per student, with a shared project limit.');
+      if (await quota.json() !== true) return reply(429, `The daily AI limit has been reached. You can try again after ${nextQuotaReset(now())} Philippine time. Limits: 30 interview requests and 3 resume analyses per student, with a shared project limit.`);
       const parts = [{ text: JSON.stringify({ profile: context,
         ...(body.action === 'interview_feedback' ? { question: body.question, answer: body.answer } : {}),
         ...(body.action === 'career_assessment' ? { answers: body.answers.map((item, index) => ({ number: index + 1, question: item.question, answer: item.answer })) } : {}) }) }];
       if (body.action === 'resume_analysis') parts.push({ inlineData: { mimeType: 'application/pdf', data: body.pdfBase64 } });
-      const upstream = await request('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent', {
+      const primaryModelUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent';
+      const fallbackModelUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent';
+      const geminiOptions = {
         method: 'POST', signal,
         headers: { 'x-goog-api-key': key, 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -106,17 +114,24 @@ export function createHandler({ env, fetch: request }) {
           generationConfig: { maxOutputTokens: 6000, responseMimeType: 'application/json',
             responseJsonSchema: geminiSchema(schemas[body.action]) },
         }),
-      });
-      if (upstream.status === 429) return reply(429, 'Gemini request or usage limits were reached. Please try later; the administrator can check quotas in Google AI Studio.');
-      if ([401, 403, 404].includes(upstream.status)) return reply(503, 'Gemini access is not configured correctly. Ask the administrator to check the API key, region, and model access.');
+      };
+      let upstream = await request(primaryModelUrl, geminiOptions);
+      if (body.action !== 'resume_analysis' && upstream.status === 503) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        upstream = await request(fallbackModelUrl, geminiOptions);
+      }
+      if (upstream.status === 429) return reply(429, 'AI request or usage limits were reached. Please try later; the administrator can check quotas in Google AI Studio.');
+      if ([401, 403, 404].includes(upstream.status)) return reply(503, 'AI access is not configured correctly. Ask the administrator to check the API key, region, and model access.');
+      if (upstream.status === 402) return reply(503, 'AI billing needs attention (HTTP 402). Ask the administrator to check credits and billing in Google AI Studio.');
       if (upstream.status === 400) {
         const details = await upstream.json().catch(() => null);
         const message = details?.error?.message || '';
-        if (/api.?key|billing|region|country|not supported.*location/i.test(message)) return reply(503, 'Gemini setup needs attention. Ask the administrator to check the API key, project eligibility, and region in Google AI Studio.');
+        if (/api.?key|billing|region|country|not supported.*location/i.test(message)) return reply(503, 'AI setup needs attention. Ask the administrator to check the API key, project eligibility, and region in Google AI Studio.');
         if (body.action === 'resume_analysis' && /pdf|document|page|file|mime/i.test(message)) return reply(422, 'This PDF could not be analyzed. Try a shorter, unencrypted PDF exported from your resume editor.');
-        return reply(503, 'Gemini rejected the request. Ask the administrator to check the deployed model and request configuration.');
+        return reply(503, 'The AI service rejected the request. Ask the administrator to check the deployed model and request configuration.');
       }
-      if (!upstream.ok) return reply(503, 'Gemini is temporarily unavailable. Please try later.');
+      if (upstream.status === 501) return reply(503, 'The AI service does not support this request (HTTP 501). Ask the administrator to check the configured model and request settings.');
+      if (!upstream.ok) return reply(503, `The AI service is temporarily unavailable (HTTP ${upstream.status}). Please try later.`);
       const result = await upstream.json();
       const candidate = result.candidates?.[0];
       if (result.promptFeedback?.blockReason || ['SAFETY', 'RECITATION', 'BLOCKLIST', 'PROHIBITED_CONTENT', 'SPII', 'IMAGE_SAFETY'].includes(candidate?.finishReason)) return reply(422, 'AI could not review this content. Please use a resume or interview-related answer.');

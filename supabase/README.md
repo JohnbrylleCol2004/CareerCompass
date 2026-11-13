@@ -1,12 +1,12 @@
 # Gemini setup for CareerCompass
 
-Interview Coach, its completed-set assessment, and Resume Analyzer call the `career-ai` Supabase Edge Function. It verifies the student's Supabase Auth token, loads only career-related profile context, enforces server-side limits, and calls the Google Gemini API using `gemini-3.5-flash-lite`. The Gemini key and Supabase service-role key never belong in the mobile app.
+Interview Coach, its completed-set assessment, and Resume Analyzer call the mobile-only `career-ai-mobile` Supabase Edge Function. The web app owns the separate `career-ai` function in the same project. Their request and response contracts differ; deploying the mobile code as `career-ai` overwrites the web function. The mobile function verifies the student's Supabase Auth token, loads only career-related profile context, enforces server-side limits, and calls the Google Gemini API using `gemini-3.5-flash-lite` first. For interview requests, an HTTP 503 triggers one attempt with `gemini-3.8-flash`. The Gemini key and Supabase service-role key never belong in the mobile app.
 
 ## 1. Create a Gemini API key
 
 Open [Google AI Studio](https://aistudio.google.com/apikey), create/select a project, and create an API key. Keep the project on the Free Tier to test without setting up paid billing. Gemini 3.5 Flash-Lite is currently listed with free-tier access, subject to project eligibility, region, and quotas. Check its availability in your AI Studio project.
 
-Google now limits access to Gemini 2.5 models to established users. This integration uses the stable `gemini-3.5-flash-lite` model for new projects; it supports PDF inputs and structured responses. See [model documentation](https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite) and [model availability guidance](https://ai.google.dev/gemini-api/docs/deprecations).
+Google now limits access to Gemini 2.5 models to established users. This integration uses the stable `gemini-3.5-flash-lite` model first; it supports PDF inputs and structured responses. Interview requests can fall back to the stable `gemini-3.8-flash` model, which also supports structured responses. Access to either model depends on the project. See [Flash-Lite documentation](https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite), [Flash documentation](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash), and [model availability guidance](https://ai.google.dev/gemini-api/docs/deprecations).
 
 Free-tier inputs and outputs may be used to improve Google products. Use fictional interview answers and sample resumes for testing. Paid usage has separate billing and data-use terms; do not enable it unless you intend to pay for API requests. See [Gemini pricing](https://ai.google.dev/gemini-api/docs/pricing) and [billing](https://ai.google.dev/gemini-api/docs/billing).
 
@@ -23,13 +23,13 @@ The migration is [`supabase/migrations/20261110000000_career_ai_quota.sql`](migr
 
 This adds usage counters and a service-role-only quota function. It does not change the `profiles` table or its policies. `profiles.id` must match the Auth user ID, and authenticated users need permission to read their own profile.
 
-Default limits reset at midnight UTC:
+Default app limits reset at midnight UTC (8:00 AM Philippine time). When the app limit is reached, the mobile function shows the next reset date and time:
 
 - 30 interview requests per student per day (generation, feedback, and completed-set assessment combined).
 - 3 resume analyses per student per day.
 - 300 AI requests across the project per day.
 
-Counts are atomic, persist across app reinstalls, and attempts that reach Gemini count even if Gemini fails. These request limits are not dollar spending caps. To change them, edit and rerun the SQL function. Usage records contain only user IDs, dates, and counts; review or prune old counters according to your retention needs.
+Counts are atomic, persist across app reinstalls, and are shared by the web and mobile functions in this Supabase project. Attempts that reach Gemini count even if Gemini fails. These request limits are not dollar spending caps. To change them, edit and rerun the SQL function. Usage records contain only user IDs, dates, and counts; review or prune old counters according to your retention needs.
 
 ## 3. Save your API key in Supabase
 
@@ -45,12 +45,16 @@ From the `CareerCompass` folder in PowerShell:
 
 ```powershell
 npx.cmd supabase login
-npx.cmd supabase functions deploy career-ai --project-ref YOUR_PROJECT_REF
+npx.cmd supabase functions deploy career-ai-mobile --remote=YOUR_PROJECT_REF
 ```
 
 Replace `YOUR_PROJECT_REF` with your Supabase project reference. Use the same project as the mobile app. Deployment reads `supabase/config.toml`. Gateway JWT verification is disabled to support current Supabase JWT configurations, but the handler explicitly verifies every bearer token using Supabase Auth before loading profiles or calling Gemini. Keep that verification in place.
 
-No extra mobile native package was added for this integration. Reload the app for local development, or rebuild your installed APK to include these screen changes.
+Deploy `career-ai-mobile` before releasing a mobile app update. Do not deploy `career-ai` from this repository; that name belongs to the web app. Existing installed mobile versions still call `career-ai` until updated and may receive the web response contract. Because this change updates the app's function name, those installations need an app update or rebuild. Later backend-only updates to `career-ai-mobile` do not require a new APK.
+
+If the last `career-ai` deployment came from this mobile repository, redeploy the web implementation from the web repository to restore its five-question and module-context contract. The mobile and web functions then run side by side.
+
+If Interview Coach reports `Question, answer and module context are required.`, that app version is still calling the web function. Update the mobile app to invoke `career-ai-mobile`; its feedback request sends `action`, `question`, and `answer` and does not send a module context field.
 
 ## 5. Test on your device
 
@@ -61,7 +65,7 @@ No extra mobile native package was added for this integration. Reload the app fo
 4. Turn off Wi-Fi and mobile data. AI actions should show the designed connection warning. Built-in interview questions remain available offline.
 5. Check Supabase Function logs and Google AI Studio usage for status/errors. Never add request-body, PDF, answer, token, or secret logging.
 
-Setup errors are shown in the app. A missing migration fails closed before calling Gemini. Gemini quota or access failures, invalid PDFs, refusals, timeouts, and incomplete model responses do not produce mock successful results. There are no automatic paid retries; try again explicitly when appropriate.
+Setup errors are shown in the app. A missing migration fails closed before calling Gemini. Gemini quota or access failures, invalid PDFs, refusals, timeouts, and incomplete model responses do not produce mock successful results. The displayed reset time applies only to the app's UTC daily limit; Gemini's own rate limits and HTTP 503 outages have no guaranteed recovery time. Interview question generation, feedback, and completed-set assessment try `gemini-3.8-flash` once when `gemini-3.5-flash-lite` returns HTTP 503. This can make a second Gemini API request, while consuming the app's daily quota only once; the provider may count or bill each model request separately. Resume analysis and other failures are not retried automatically. If both models are unavailable, try again later.
 
 ## Data and limitations
 
@@ -74,7 +78,7 @@ PDF extension, size, Base64 encoding, and signature are checked on the server. D
 ## Automated checks
 
 ```powershell
-node --test supabase/functions/career-ai/handler.test.mjs
+node --test supabase/functions/career-ai-mobile/handler.test.mjs
 node --test tests/authRegistration.test.cjs
 node --test tests/careerAiService.test.cjs
 ```
@@ -83,4 +87,4 @@ These use mock network responses and do not consume API credits. A real end-to-e
 
 References: [Gemini content generation](https://ai.google.dev/api/generate-content), [PDF inputs](https://ai.google.dev/gemini-api/docs/document-processing), [structured outputs](https://ai.google.dev/gemini-api/docs/structured-output), [Supabase secrets](https://supabase.com/docs/guides/functions/secrets).
 
-If you previously deployed the OpenAI version, add `GEMINI_API_KEY` and redeploy `career-ai`. The previous `OPENAI_API_KEY` is no longer read; you can remove that unused secret from Supabase. Existing usage counters and SQL policies continue to work without a new migration. Gemini's project quotas apply in addition to the app's limits, so a free-tier quota may be reached sooner.
+If you previously deployed the OpenAI version, add `GEMINI_API_KEY` and deploy `career-ai-mobile`. The previous `OPENAI_API_KEY` is no longer read by the mobile function; check whether the web function still needs it before removing that secret. Existing usage counters and SQL policies continue to work without a new migration. Gemini's project quotas apply in addition to the app's limits, so a free-tier quota may be reached sooner.

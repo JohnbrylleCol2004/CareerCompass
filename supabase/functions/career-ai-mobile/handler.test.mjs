@@ -9,8 +9,9 @@ const pdfBase64 = btoa('%PDF-1.7\nminimal test fixture');
 
 function setup(overrides = {}) {
   const calls = [];
+  let aiAttempt = 0;
   const env = { SUPABASE_URL: 'https://example.supabase.co', SUPABASE_ANON_KEY: 'public-key', SUPABASE_SERVICE_ROLE_KEY: 'service-secret', GEMINI_API_KEY: 'gemini-secret', ...overrides.env };
-  const handler = createHandler({ env: name => env[name], fetch: async (url, options) => {
+  const handler = createHandler({ env: name => env[name], now: overrides.now, fetch: async (url, options) => {
     calls.push({ url, options });
     if (overrides.networkFailure) throw new Error('private upstream details');
     let data;
@@ -20,11 +21,11 @@ function setup(overrides = {}) {
     else if (url.includes('/rpc/')) { data = overrides.quota ?? true; status = overrides.quotaStatus || 200; }
     else {
       data = overrides.response || { candidates: [{ finishReason: 'STOP', content: { parts: [{ text: JSON.stringify(overrides.value || questions) }] } }] };
-      status = overrides.aiStatus || 200;
+      status = overrides.aiStatuses?.[aiAttempt++] ?? overrides.aiStatus ?? 200;
     }
     return new Response(JSON.stringify(data), { status });
   } });
-  const send = (body = { action: 'interview_questions' }, authorization = 'Bearer user-token', extraHeaders = {}) => handler(new Request('https://local/career-ai', {
+  const send = (body = { action: 'interview_questions' }, authorization = 'Bearer user-token', extraHeaders = {}) => handler(new Request('https://local/career-ai-mobile', {
     method: 'POST', headers: { ...(authorization ? { Authorization: authorization } : {}), ...extraHeaders }, body: JSON.stringify(body),
   }));
   return { calls, send, handler };
@@ -54,7 +55,7 @@ test('question generation scopes profile and quota to the verified user and excl
   assert.match(s.calls[1].url, /id=eq.verified-user$/);
   assert.equal(s.calls[1].options.headers.Authorization, 'Bearer user-token');
   assert.equal(s.calls[2].options.headers.Authorization, 'Bearer service-secret');
-  assert.deepEqual(JSON.parse(s.calls[2].options.body), { p_user_id: 'verified-user', p_feature: 'interview' });
+  assert.deepEqual(JSON.parse(s.calls[2].options.body), { p_user_id: 'verified-user', p_kind: 'interview' });
   const ai = s.calls[3];
   const body = JSON.parse(ai.options.body);
   assert.equal(ai.options.headers['x-goog-api-key'], 'gemini-secret');
@@ -92,7 +93,7 @@ test('resume sends the actual PDF inline without creating persistent file storag
   assert.deepEqual(await (await s.send({ action: 'resume_analysis', filename: 'sample.pdf', pdfBase64 })).json(), analysis);
   const body = JSON.parse(s.calls[3].options.body);
   assert.deepEqual(body.contents[0].parts[1], { inlineData: { mimeType: 'application/pdf', data: pdfBase64 } });
-  assert.equal(JSON.parse(s.calls[2].options.body).p_feature, 'resume');
+  assert.equal(JSON.parse(s.calls[2].options.body).p_kind, 'resume');
   assert.equal(s.calls.length, 4);
 });
 test('unrelated document gets an honest document warning response', async () => {
@@ -119,6 +120,20 @@ test('invalid actions, inputs, profile, and quota never call Gemini', async () =
     assert.ok(s.calls.every(call => !call.url.includes('generativelanguage.googleapis.com')));
   }
 });
+
+test('daily app limit reports the next UTC reset as a Philippine date and time', async () => {
+  const before = setup({ quota: false, now: () => new Date('2026-11-13T23:59:00Z') });
+  const first = await before.send({ action: 'interview_feedback', question: 'Q', answer: 'A' });
+  assert.equal(first.status, 429);
+  assert.match((await first.json()).error, /Nov 14, 2026.*8:00 AM.*Philippine time/i);
+
+  const after = setup({ quota: false, now: () => new Date('2026-11-14T00:00:00Z') });
+  const second = await after.send({ action: 'interview_feedback', question: 'Q', answer: 'A' });
+  assert.equal(second.status, 429);
+  assert.match((await second.json()).error, /Nov 15, 2026.*8:00 AM.*Philippine time/i);
+  assert.ok(before.calls.every(call => !call.url.includes('generativelanguage.googleapis.com')));
+  assert.ok(after.calls.every(call => !call.url.includes('generativelanguage.googleapis.com')));
+});
 test('oversized and malformed payloads are rejected before quota or Gemini', async () => {
   const s = setup();
   assert.equal((await s.send({ action: 'interview_questions' }, 'Bearer user-token', { 'content-length': '20000000' })).status, 413);
@@ -141,6 +156,60 @@ test('upstream errors and invalid model outputs never become demo results or lea
     assert.equal(response.status, status);
     assert.doesNotMatch(JSON.stringify(await response.json()), /gemini-secret|service-secret|private upstream/);
   }
+});
+
+test('Gemini failure messages distinguish billing, unsupported requests, and server errors without leaking upstream details', async () => {
+  for (const [status, expected] of [
+    [402, /billing.*HTTP 402/i],
+    [501, /does not support.*HTTP 501/i],
+    [500, /temporarily unavailable.*HTTP 500/i],
+    [503, /temporarily unavailable.*HTTP 503/i],
+  ]) {
+    const response = await setup({ aiStatus: status, response: { error: { message: 'PRIVATE UPSTREAM DETAILS' } } }).send();
+    assert.equal(response.status, 503);
+    const body = await response.json();
+    assert.match(body.error, expected);
+    assert.doesNotMatch(JSON.stringify(body), /PRIVATE UPSTREAM DETAILS/);
+  }
+});
+
+test('question generation falls back to another model after HTTP 503 without consuming the app quota twice', async () => {
+  const s = setup({ aiStatuses: [503, 200] });
+  const response = await s.send();
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), questions);
+  assert.equal(s.calls.filter(call => call.url.includes('/rpc/')).length, 1);
+  const aiCalls = s.calls.filter(call => call.url.includes('generativelanguage.googleapis.com'));
+  assert.equal(aiCalls.length, 2);
+  assert.match(aiCalls[0].url, /models\/gemini-3\.5-flash-lite:generateContent$/);
+  assert.match(aiCalls[1].url, /models\/gemini-3\.8-flash:generateContent$/);
+});
+
+test('feedback falls back to another model after HTTP 503', async () => {
+  const s = setup({ aiStatuses: [503, 200], value: feedback });
+  const response = await s.send({ action: 'interview_feedback', question: 'Tell me about a project', answer: 'I built a website.' });
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), feedback);
+  const aiCalls = s.calls.filter(call => call.url.includes('generativelanguage.googleapis.com'));
+  assert.equal(aiCalls.length, 2);
+  assert.match(aiCalls[1].url, /models\/gemini-3\.8-flash:generateContent$/);
+});
+
+test('question generation stops after one fallback when both models return HTTP 503', async () => {
+  const s = setup({ aiStatuses: [503, 503, 200] });
+  const response = await s.send();
+  assert.equal(response.status, 503);
+  assert.match((await response.json()).error, /HTTP 503/);
+  const aiCalls = s.calls.filter(call => call.url.includes('generativelanguage.googleapis.com'));
+  assert.equal(aiCalls.length, 2);
+  assert.match(aiCalls[1].url, /models\/gemini-3\.8-flash:generateContent$/);
+});
+
+test('quota errors do not trigger a second model request', async () => {
+  const s = setup({ aiStatuses: [429, 200] });
+  const response = await s.send({ action: 'interview_feedback', question: 'Q', answer: 'A' });
+  assert.equal(response.status, 429);
+  assert.equal(s.calls.filter(call => call.url.includes('generativelanguage.googleapis.com')).length, 1);
 });
 
 test('the full 10 MB PDF limit works and an extra byte is rejected', async () => {

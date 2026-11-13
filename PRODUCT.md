@@ -29,7 +29,7 @@ Students create an account, enter their program, career target, interests, and t
 - The mobile app uses Expo and React Native with Supabase authentication and profile data.
 - The current BSIT catalog includes primary and secondary job roles and six recommended elective courses from the curriculum excerpts the user supplied. The curriculum's issuing authority and whether it is the university's current official curriculum have not been established.
 - Skill Gap and suggested career paths derive from the completed Interview Coach set. Ratings reflect evidence in answers, not verified ability; areas without enough evidence are marked unassessed. Career ordering uses a fixed heuristic mapping from skill areas to the supplied BSIT roles, not an official university or employer requirement. The full role and elective catalogs remain available.
-- Interview Coach and Resume Analyzer use a Supabase Edge Function backed by Gemini. The built-in interview questions remain available offline; AI requests need a connection.
+- Interview Coach and Resume Analyzer use a Supabase Edge Function backed by Google's AI service. The built-in interview questions remain available offline; AI requests need a connection.
 - Resume analysis is coaching guidance, not an ATS score or hiring prediction. The selected PDF may contain personal information and is sent to the AI provider for analysis. Interview answers and resume results remain in screen memory. Only derived area ratings, question numbers, and short notes are saved on the device per signed-in account after assessment; raw answers are not saved.
 
 ## Brand Commitments

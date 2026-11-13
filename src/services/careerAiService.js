@@ -4,9 +4,9 @@ import { supabase } from '../lib/supabase';
 import { MAX_RESUME_BYTES, validatePdfHeader, validatePdfMetadata } from '../utils/resumePdf';
 
 export async function requestCareerAi(body) {
-  const { data, error } = await supabase.functions.invoke('career-ai', { body, timeout: 90000 });
+  const { data, error } = await supabase.functions.invoke('career-ai-mobile', { body, timeout: 90000 });
   if (error) {
-    let message = 'Could not reach AI. Check your internet connection and ensure the career-ai function is deployed.';
+    let message = 'Could not reach AI. Check your internet connection and ensure the career-ai-mobile function is deployed.';
     try {
       const details = await error.context?.json();
       if (typeof details?.error === 'string') message = details.error;
