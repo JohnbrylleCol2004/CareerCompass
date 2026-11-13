@@ -93,7 +93,7 @@ export default function InterviewCoachScreen({ navigation }) {
             </Text>
 
             <Text style={styles.note}>Practice for {user?.program || 'your program'}{user?.career_target ? ` · ${user.career_target}` : ''}.</Text>
-            <Text style={styles.note}>Generating questions shares your program, career target, interests, and technologies with the Google AI service. Requesting feedback shares that answer. Avoid private information. Free-tier inputs may be used to improve Google products; use sample data for testing. Answers stay on this screen. A completed assessment saves only area ratings and short evidence notes on this device.</Text>
+            <Text style={styles.note}>Generating questions shares your program, career target, interests, and technologies with an external AI service. Requesting feedback shares that answer. Avoid private information. Free-tier inputs may be used by the provider to improve its products; use sample data for testing. Answers stay on this screen. A completed assessment saves only area ratings and short evidence notes on this device.</Text>
             <PrimaryButton title={generated ? 'Generate 20 New AI Questions' : 'Generate 20 AI Questions'}
               variant="secondary"
               loading={loading === 'interview_questions'} disabled={!!loading}
@@ -153,7 +153,7 @@ export default function InterviewCoachScreen({ navigation }) {
               disabled={!!loading || questionIndex === questions.length - 1}
             />
             {questionIndex === questions.length - 1 && <>
-              <Text style={styles.note}>Answer all 20 questions to review them together. This sends the questions and answers to the Google AI service once. Results are practice guidance, not verified skill or hiring scores.</Text>
+              <Text style={styles.note}>Answer all 20 questions to review them together. This sends the questions and answers to an external AI service once. Results are practice guidance, not verified skill or hiring scores.</Text>
               <PrimaryButton title="Assess answers for Skill Gap and Careers"
                 loading={loading === 'career_assessment'} disabled={!!loading || !completed}
                 onPress={() => runAi('career_assessment')} />

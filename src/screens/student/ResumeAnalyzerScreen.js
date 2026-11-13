@@ -57,7 +57,7 @@ export default function ResumeAnalyzerScreen() {
             <PrimaryButton title="Remove PDF" variant="secondary" disabled={loading} onPress={() => { setResume(null); setAnalysis(null); setError(''); }} />
           </>
         )}
-        <Text style={styles.fileDetails}>Tapping Analyze sends your PDF and career profile context to the Google AI service for review. For free-tier testing, use a sample resume: inputs may be used to improve Google products. Your PDF and analysis are not saved to our database.</Text>
+        <Text style={styles.fileDetails}>Tapping Analyze sends your PDF and career profile context to an external AI service for review. For free-tier testing, use a sample resume: inputs may be used by the provider to improve its products. Your PDF and analysis are not saved to our database.</Text>
 
         <PrimaryButton
           title="Analyze Resume"

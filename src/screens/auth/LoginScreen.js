@@ -78,7 +78,7 @@ export default function LoginScreen({ navigation }) {
         />
 
         <TouchableOpacity
-          onPress={() => navigation.navigate('ForgotPassword')}
+          onPress={() => navigation.navigate('ForgotPassword', { email: email.trim() })}
           accessibilityRole="button"
           style={styles.linkButton}
         >

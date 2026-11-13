@@ -61,7 +61,7 @@ export default function ProfileScreen({ navigation }) {
         />
 
         <SummaryCard
-          title="Career Target"
+          title="Preferred Career Goal"
           variant="list"
           value={
             user?.career_target || 'Not provided'
@@ -81,6 +81,7 @@ export default function ProfileScreen({ navigation }) {
         />
 
         <SummaryCard title="Username" value={user?.username || 'Not provided'} variant="list" />
+        <SummaryCard title="Academic Year" value={user?.academic_year || 'Not provided'} variant="list" />
         <SummaryCard title="Department" value={user?.department || 'Not provided'} variant="list" />
         <SummaryCard title="Position" value={user?.position || 'Not provided'} variant="list" />
 

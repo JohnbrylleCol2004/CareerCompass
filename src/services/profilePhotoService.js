@@ -1,10 +1,22 @@
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { decode } from 'base64-arraybuffer';
 import { supabase } from '../lib/supabase';
+import { File } from 'expo-file-system';
+import { Platform } from 'react-native';
+import { validateProfilePhoto, MAX_PHOTO_BYTES } from '../utils/profileFields.mjs';
 
 const BUCKET = 'profile-photos';
 
+export async function checkProfilePhoto(asset) {
+  const size = Platform.OS === 'web'
+    ? (asset.file?.size ?? asset.fileSize ?? (await (await fetch(asset.uri)).blob()).size)
+    : new File(asset.uri).size;
+  const error = validateProfilePhoto(asset, size);
+  if (error) throw new Error(error);
+}
+
 export async function uploadProfilePhoto(asset) {
+  await checkProfilePhoto(asset);
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) throw new Error('Please sign in again to upload a photo.');
 
@@ -14,7 +26,7 @@ export async function uploadProfilePhoto(asset) {
   const image = await rendered.saveAsync({ format: SaveFormat.JPEG, compress: 0.8, base64: true });
   if (!image.base64) throw new Error('Unable to read this photo. Please choose another image.');
   const bytes = decode(image.base64);
-  if (bytes.byteLength > 5 * 1024 * 1024) throw new Error('Please choose a photo smaller than 5 MB.');
+  if (bytes.byteLength > MAX_PHOTO_BYTES) throw new Error('Choose a photo no larger than 2 MB.');
 
   const path = `${data.user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
   const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, bytes, {
