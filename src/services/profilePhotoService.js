@@ -5,7 +5,7 @@ import { File } from 'expo-file-system';
 import { Platform } from 'react-native';
 import { validateProfilePhoto, MAX_PHOTO_BYTES } from '../utils/profileFields.mjs';
 
-const BUCKET = 'profile-photos';
+const BUCKET = 'avatars';
 
 export async function checkProfilePhoto(asset) {
   const size = Platform.OS === 'web'
@@ -40,6 +40,19 @@ export async function uploadProfilePhoto(asset) {
 export async function getProfilePhotoUrl(path) {
   if (!path) return null;
   const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(path, 3600);
-  if (error) throw new Error(error.message);
+  if (error) {
+    // Older mobile releases stored images here. New uploads always use avatars.
+    const legacy = await supabase.storage.from('profile-photos').createSignedUrl(path, 3600);
+    if (legacy.error) throw new Error(error.message);
+    return legacy.data.signedUrl;
+  }
   return data.signedUrl;
+}
+
+export async function getProfilePhotoPath(userId) {
+  if (!userId) return null;
+  const { data, error } = await supabase.from('profiles')
+    .select('profile_image_path').eq('id', userId).single();
+  if (error) throw new Error(error.message);
+  return data?.profile_image_path || null;
 }

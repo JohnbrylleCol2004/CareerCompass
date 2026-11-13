@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Linking, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, AppState, Image, Linking, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { useCameraPermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts } from 'expo-font';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../context/AuthContext';
-import { checkProfilePhoto, getProfilePhotoUrl, uploadProfilePhoto } from '../services/profilePhotoService';
+import { checkProfilePhoto, getProfilePhotoPath, getProfilePhotoUrl, uploadProfilePhoto } from '../services/profilePhotoService';
 import PrimaryButton from './PrimaryButton';
 import { colors } from '../theme/colors';
 import ProfileCamera from './ProfileCamera';
@@ -21,10 +21,12 @@ export default function ProfilePhoto({ explicitUpload = false, disabled = false,
   const [photoError, setPhotoError] = useState(false);
   const [cameraFacing, setCameraFacing] = useState(null);
   const [pendingPhoto, setPendingPhoto] = useState(null);
+  const [pendingPhotoError, setPendingPhotoError] = useState(false);
   const [, requestCameraPermission] = useCameraPermissions();
   const isFocused = useIsFocused();
   const busy = useRef(false);
   const path = user?.profile_image_path;
+  const userId = user?.id;
   useEffect(() => {
     onBusyChange?.(uploading || !!cameraFacing);
     return () => onBusyChange?.(false);
@@ -33,16 +35,19 @@ export default function ProfilePhoto({ explicitUpload = false, disabled = false,
 
   useFocusEffect(useCallback(() => {
     let active = true;
+    let request = 0;
     async function loadPhoto() {
-      if (offline) return;
+      if (offline || busy.current) return;
+      const current = ++request;
       try {
-        const url = await getProfilePhotoUrl(path);
-        if (active) {
+        const latestPath = userId ? await getProfilePhotoPath(userId) : path;
+        const url = await getProfilePhotoUrl(latestPath);
+        if (active && current === request && !busy.current) {
           setPhotoUrl(url);
           setPhotoError(false);
         }
       } catch {
-        if (active) {
+        if (active && current === request && !busy.current) {
           setPhotoUrl(null);
           setPhotoError(true);
         }
@@ -50,8 +55,9 @@ export default function ProfilePhoto({ explicitUpload = false, disabled = false,
     }
     loadPhoto();
     const timer = setInterval(loadPhoto, 50 * 60 * 1000);
-    return () => { active = false; clearInterval(timer); };
-  }, [path, offline]));
+    const foreground = AppState.addEventListener('change', state => { if (state === 'active') loadPhoto(); });
+    return () => { active = false; clearInterval(timer); foreground.remove(); };
+  }, [path, userId, offline]));
 
   function choosePhoto() {
     if (!requireConnection()) return;
@@ -119,7 +125,7 @@ export default function ProfilePhoto({ explicitUpload = false, disabled = false,
       await checkProfilePhoto(asset);
       if (explicitUpload && !commit) {
         setPendingPhoto(asset);
-        setPhotoError(false);
+        setPendingPhotoError(false);
         return;
       }
       const uploadedPath = await uploadProfilePhoto(asset);
@@ -149,9 +155,9 @@ export default function ProfilePhoto({ explicitUpload = false, disabled = false,
         style={styles.photoButton} accessibilityRole="button"
         accessibilityLabel={path ? 'Change profile photo' : 'Add profile photo'}
         accessibilityState={{ disabled: uploading || disabled, busy: uploading }}>
-      {(pendingPhoto?.uri || photoUrl) && !photoError ? (
+      {(pendingPhoto?.uri || photoUrl) && !(pendingPhoto ? pendingPhotoError : photoError) ? (
         <Image source={{ uri: pendingPhoto?.uri || photoUrl }} style={styles.photo} accessibilityLabel={pendingPhoto ? 'Selected photo preview' : 'Your profile photo'}
-          onError={() => setPhotoError(true)} />
+          onError={() => pendingPhoto ? setPendingPhotoError(true) : setPhotoError(true)} />
       ) : (
         <View style={[styles.photo, styles.placeholder]}>
           {iconsLoaded ? <Ionicons name="person-outline" size={54} color={colors.dark} /> : (
@@ -168,11 +174,12 @@ export default function ProfilePhoto({ explicitUpload = false, disabled = false,
       {explicitUpload && <View style={{ alignSelf: 'stretch' }}>
         <PrimaryButton title="Choose Profile Picture" variant="secondary" onPress={choosePhoto} disabled={disabled || uploading} />
         <PrimaryButton title="Upload Picture" onPress={() => savePhoto(pendingPhoto, true)} loading={uploading} disabled={disabled || !pendingPhoto} />
-        {pendingPhoto && <PrimaryButton title="Cancel Selection" variant="secondary" onPress={() => { setPendingPhoto(null); setPhotoError(false); }} disabled={disabled || uploading} />}
+        {pendingPhoto && <PrimaryButton title="Cancel Selection" variant="secondary" onPress={() => { setPendingPhoto(null); setPendingPhotoError(false); setPhotoError(false); }} disabled={disabled || uploading} />}
         <Text style={styles.hint}>PNG or JPG/JPEG only · Maximum 2 MB · Square image recommended</Text>
         {pendingPhoto && <Text style={styles.hint}>Preview only. Tap Upload Picture to save this photo.</Text>}
       </View>}
-      {photoError && <Text style={styles.error}>Photo could not load. Check your connection and reopen Profile.</Text>}
+      {photoError && !pendingPhoto && <Text style={styles.error}>Photo could not load. Check your connection and reopen Profile.</Text>}
+      {pendingPhoto && pendingPhotoError && <Text style={styles.error}>Selected photo preview could not load. Please choose the photo again.</Text>}
     </View>
   );
 }
